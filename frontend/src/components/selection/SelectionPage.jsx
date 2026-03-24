@@ -8,6 +8,7 @@
  */
 
 import { useState } from 'react'
+import { useRoadmapGeneration } from '../../hooks/useRoadmapGeneration.js'
 import {
   Layout,
   Terminal,
@@ -181,7 +182,7 @@ function LevelSelectionView({ selectedRole, selectedLevel, onSelect, onBack }) {
 }
 
 /** LLM 프로바이더 설정 + 생성 시작 뷰 */
-function ConfigView({ selectedRole, selectedLevel, provider, onProviderChange, onStart, onBack, loading }) {
+function ConfigView({ selectedRole, selectedLevel, provider, onProviderChange, onStart, onBack, loading, error }) {
   return (
     <CenteredLayout>
       <div className="bg-white p-12 rounded-[3rem] shadow-2xl w-full max-w-xl border border-slate-100">
@@ -236,6 +237,13 @@ function ConfigView({ selectedRole, selectedLevel, provider, onProviderChange, o
           </div>
         </div>
 
+        {/* API 에러 메시지 */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-2xl text-sm text-red-700 font-medium">
+            {error}
+          </div>
+        )}
+
         {/* 생성 시작 버튼 */}
         <Button
           fullWidth
@@ -282,22 +290,21 @@ export default function SelectionPage({ onRoadmapReady }) {
   const { state, dispatch } = useSelection()
   const [step, setStep] = useState('role-selection')
   const [provider, setProvider] = useState('OLLAMA')
-  const [loading, setLoading] = useState(false)
+  const [apiError, setApiError] = useState(null)
+  const { generate, loading } = useRoadmapGeneration()
 
   const selectedRole = ROLES.find((r) => r.id === state.role) ?? null
   const selectedLevel = LEVELS.find((l) => l.id === state.level) ?? null
 
   async function handleStart() {
+    setApiError(null)
     setStep('generating')
-    setLoading(true)
     try {
-      // apiService는 Session 2에서 실제 LLM 연동으로 교체됩니다.
-      // 현재는 더미 데이터로 레이아웃만 검증합니다.
-      await new Promise((r) => setTimeout(r, 1500))
-      const dummyData = buildDummyRoadmap(state.role, state.level)
-      onRoadmapReady(dummyData)
-    } finally {
-      setLoading(false)
+      const data = await generate(state.role, state.level)
+      onRoadmapReady(data)
+    } catch (err) {
+      setApiError(err.message ?? '로드맵 생성에 실패했습니다.')
+      setStep('config')
     }
   }
 
@@ -337,6 +344,7 @@ export default function SelectionPage({ onRoadmapReady }) {
         onStart={handleStart}
         onBack={() => setStep('level-selection')}
         loading={loading}
+        error={apiError}
       />
     )
   }
@@ -344,39 +352,3 @@ export default function SelectionPage({ onRoadmapReady }) {
   return <GeneratingView selectedLevel={selectedLevel} />
 }
 
-// ── 더미 데이터 생성기 (Session 2 LLM 연동 전 임시) ────
-
-function buildDummyRoadmap(role, level) {
-  return {
-    root: {
-      id: 'root',
-      label: `${role} — ${level}`,
-      children: [
-        {
-          id: 'branch_1',
-          label: '핵심 언어 & 도구',
-          children: [
-            { id: 'leaf_1_1', label: '언어 기초 & 타입 시스템', description: '기본 문법, 타입 시스템 이해', estimatedWeeks: 3, status: 'available' },
-            { id: 'leaf_1_2', label: '패키지 매니저 & 빌드 도구', description: '의존성 관리 및 빌드 자동화', estimatedWeeks: 1, status: 'locked' },
-          ],
-        },
-        {
-          id: 'branch_2',
-          label: '아키텍처 & 설계',
-          children: [
-            { id: 'leaf_2_1', label: '디자인 패턴', description: 'SOLID, GoF 패턴 실무 적용', estimatedWeeks: 4, status: 'locked' },
-            { id: 'leaf_2_2', label: '시스템 설계 기초', description: 'CAP 이론, 확장성 전략', estimatedWeeks: 6, status: 'locked' },
-          ],
-        },
-        {
-          id: 'branch_3',
-          label: '인프라 & 운영',
-          children: [
-            { id: 'leaf_3_1', label: 'Docker & 컨테이너', description: '이미지 빌드, 네트워크 구성', estimatedWeeks: 2, status: 'locked' },
-            { id: 'leaf_3_2', label: 'CI/CD 파이프라인', description: 'GitHub Actions, 자동 배포', estimatedWeeks: 2, status: 'locked' },
-          ],
-        },
-      ],
-    },
-  }
-}

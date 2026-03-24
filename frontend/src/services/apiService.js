@@ -43,7 +43,7 @@ export async function checkHealth() {
 }
 
 /**
- * 로드맵 JSON 생성 요청 (Session 2에서 실제 사용)
+ * 로드맵 JSON 생성 요청
  *
  * @param {{ role: string, level: string, use_guideline?: boolean }} params
  * @returns {Promise<object>} 로드맵 트리 JSON
@@ -53,4 +53,60 @@ export async function generateRoadmap({ role, level, use_guideline = true }) {
     method: 'POST',
     body: JSON.stringify({ role, level, use_guideline }),
   })
+}
+
+/**
+ * 로드맵 SSE 스트리밍 요청.
+ * 서버에서 토큰이 도착할 때마다 onChunk 콜백을 호출하고,
+ * 스트림이 완료되면 onDone 콜백을 호출합니다.
+ *
+ * @param {{ role: string, level: string, use_guideline?: boolean }} params
+ * @param {(token: string) => void} onChunk  - 토큰 수신 콜백
+ * @param {() => void}              onDone   - 스트림 완료 콜백
+ * @returns {Promise<void>}
+ */
+export async function generateRoadmapStream(
+  { role, level, use_guideline = true },
+  onChunk,
+  onDone,
+) {
+  const response = await fetch(`${BASE_URL}/api/roadmap/generate/stream`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role, level, use_guideline }),
+  })
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}))
+    throw new Error(body.detail ?? `HTTP ${response.status}`)
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split('\n')
+    buffer = lines.pop() ?? ''
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue
+      const payload = line.slice(6).trim()
+      if (payload === '[DONE]') {
+        onDone()
+        return
+      }
+      try {
+        const parsed = JSON.parse(payload)
+        if (parsed.error) throw new Error(parsed.error)
+        if (parsed.token) onChunk(parsed.token)
+      } catch (err) {
+        throw err instanceof SyntaxError ? new Error('스트림 파싱 오류') : err
+      }
+    }
+  }
 }

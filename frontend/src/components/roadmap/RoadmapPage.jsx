@@ -11,7 +11,7 @@
  */
 
 import { useState } from 'react'
-import { BookOpen, Target, Layout } from 'lucide-react'
+import { BookOpen, Target, Layout, Brain, RefreshCw } from 'lucide-react'
 import { FullLayout } from '../common/Layout.jsx'
 import { useSelection } from '../../context/SelectionContext.jsx'
 import MindmapLayout from './MindmapLayout.jsx'
@@ -113,19 +113,76 @@ function NodeSummaryPanel({ node }) {
   )
 }
 
+// ── 로딩 / 에러 상태 ──────────────────────────────────
+
+function LoadingView() {
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center bg-white">
+      <div className="relative mb-8">
+        <div className="w-24 h-24 border-[5px] border-slate-100 border-t-blue-600 rounded-full animate-spin" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Brain size={32} className="text-blue-600 animate-pulse" />
+        </div>
+      </div>
+      <h2 className="text-2xl font-black text-slate-900 tracking-tight">로드맵 생성 중...</h2>
+      <p className="text-slate-400 mt-2 text-sm">LLM이 최적의 커리큘럼을 설계하고 있습니다</p>
+    </div>
+  )
+}
+
+function ErrorView({ message, onRetry }) {
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center bg-white gap-6">
+      <div className="w-20 h-20 bg-red-50 rounded-[2rem] flex items-center justify-center">
+        <RefreshCw size={36} className="text-red-400" />
+      </div>
+      <div className="text-center">
+        <h2 className="text-2xl font-black text-slate-900 mb-2">생성 실패</h2>
+        <p className="text-slate-500 text-sm max-w-sm">{message}</p>
+      </div>
+      <button
+        onClick={onRetry}
+        className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white font-black rounded-2xl hover:bg-black transition-colors"
+      >
+        <RefreshCw size={16} />
+        다시 시도
+      </button>
+    </div>
+  )
+}
+
 // ── 메인 컴포넌트 ─────────────────────────────────────
 
 /**
- * @param {object} props
- * @param {object} props.data     - 로드맵 트리 데이터 (`{ root: {...} }`)
- * @param {() => void} props.onReset - 처음으로 돌아가기
+ * @param {object}       props
+ * @param {object|null}  props.data     - 로드맵 트리 데이터 (`{ root: {...} }`)
+ * @param {boolean}      [props.loading] - 생성 중 여부
+ * @param {string|null}  [props.error]   - 에러 메시지
+ * @param {() => void}   props.onReset  - 처음으로 돌아가기
+ * @param {() => void}   [props.onRetry] - 재시도 콜백
  */
-export default function RoadmapPage({ data, onReset }) {
+export default function RoadmapPage({ data, loading = false, error = null, onReset, onRetry }) {
   const { state } = useSelection()
   const [viewMode, setViewMode] = useState('mindmap')
   const [activeNode, setActiveNode] = useState(null)
 
-  const root = data.root ?? data
+  if (loading) {
+    return (
+      <FullLayout>
+        <LoadingView />
+      </FullLayout>
+    )
+  }
+
+  if (error) {
+    return (
+      <FullLayout>
+        <ErrorView message={error} onRetry={onRetry ?? onReset} />
+      </FullLayout>
+    )
+  }
+
+  const root = data?.root ?? data
 
   return (
     <FullLayout>
