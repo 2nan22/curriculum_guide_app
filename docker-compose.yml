@@ -1,0 +1,49 @@
+version: '3.9'
+
+# AI Path - Docker Compose
+# Dev 환경: 핫리로드 지원, .env 파일로 LLM 프로바이더 전환
+# Usage: docker compose up --build
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aipath-backend
+    ports:
+      - "8000:8000"
+    env_file: .env
+    volumes:
+      - ./backend:/app              # 핫리로드용 소스 마운트
+      - ./public/data:/app/data:ro  # 커리큘럼 JSON 읽기 전용 마운트
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - aipath-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aipath-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - ./frontend:/app             # 핫리로드용 소스 마운트
+      - /app/node_modules           # 컨테이너 내 node_modules 보존
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    restart: unless-stopped
+    networks:
+      - aipath-net
+
+networks:
+  aipath-net:
+    driver: bridge

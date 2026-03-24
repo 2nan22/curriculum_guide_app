@@ -1,0 +1,86 @@
+{
+  "Backend": {
+    "Junior": [
+      "HTTP/REST API 기초", "CRUD 구현 (Spring Boot / FastAPI)", "Git 브랜치 전략",
+      "관계형 DB 설계 (MySQL/PostgreSQL)", "단위 테스트 작성"
+    ],
+    "Mid": [
+      "JPA/ORM 최적화 (N+1 문제)", "Redis 캐싱 전략", "메시지 큐 (Kafka/RabbitMQ)",
+      "TDD & BDD", "Docker & CI/CD", "API 인증 (JWT/OAuth2)"
+    ],
+    "Senior": [
+      "대규모 시스템 설계 (Alex Xu)", "MSA 아키텍처 패턴", "성능 프로파일링 & APM",
+      "Database Sharding & Replication", "보안 설계 (OWASP Top 10)"
+    ]
+  },
+  "Frontend": {
+    "Junior": [
+      "HTML/CSS 기초 & 반응형", "JavaScript ES2024", "React 19 기초 (JSX, Hooks)",
+      "Git & GitHub 협업", "Chrome DevTools"
+    ],
+    "Mid": [
+      "React 19 고급 패턴 (use, Suspense)", "TypeScript 실무 적용",
+      "상태 관리 (Zustand/Jotai)", "성능 최적화 (Core Web Vitals)", "테스트 (Vitest/RTL)"
+    ],
+    "Senior": [
+      "마이크로 프론트엔드", "Web Workers & WASM", "디자인 시스템 구축",
+      "SSR/SSG 아키텍처 (Next.js)", "번들 사이즈 최적화"
+    ]
+  },
+  "AI/ML": {
+    "Junior": [
+      "Python 기초 & NumPy/Pandas", "머신러닝 개념 (선형/로지스틱 회귀)",
+      "Scikit-learn 실습", "데이터 전처리 & EDA", "Jupyter 환경 구성"
+    ],
+    "Mid": [
+      "딥러닝 기초 (PyTorch)", "CNN/RNN/Transformer 아키텍처",
+      "LLM 파인튜닝 (LoRA/QLoRA)", "RAG 파이프라인 구축", "Vector DB (Pinecone/Chroma)"
+    ],
+    "Senior": [
+      "LLM 프로덕션 배포 (vLLM/TGI)", "MLOps & 모델 모니터링",
+      "멀티모달 모델 설계", "AI 시스템 평가 프레임워크", "분산 학습 (DeepSpeed)"
+    ]
+  },
+  "DevOps": {
+    "Junior": [
+      "Linux 기초 & 쉘 스크립트", "Docker 이미지 빌드", "GitHub Actions CI/CD 기초",
+      "Nginx 웹서버 설정", "클라우드 기초 (AWS/GCP)"
+    ],
+    "Mid": [
+      "Kubernetes Pod/Deployment/Service", "Helm Chart 작성",
+      "Terraform IaC", "Prometheus & Grafana 모니터링", "로그 집계 (ELK Stack)"
+    ],
+    "Senior": [
+      "멀티 클러스터 K8s 관리", "SRE & SLO/SLA 설계",
+      "FinOps & 클라우드 비용 최적화", "제로 다운타임 배포 전략", "카오스 엔지니어링"
+    ]
+  },
+  "Mobile": {
+    "Junior": [
+      "Swift/Kotlin 기초", "React Native or Flutter 기초",
+      "UI 컴포넌트 & 네비게이션", "HTTP 통신 & JSON 파싱", "앱 배포 (App Store/Play Store)"
+    ],
+    "Mid": [
+      "상태 관리 (Redux/Riverpod)", "오프라인 동기화 & 로컬 DB",
+      "푸시 알림 & 딥링크", "성능 최적화 (Frame Drop 분석)", "앱 보안 (인증서 피닝)"
+    ],
+    "Senior": [
+      "네이티브 모듈 개발 (Bridging)", "멀티플랫폼 코드 공유 전략",
+      "앱 아키텍처 (MVVM/Clean Architecture)", "CI/CD (Fastlane)", "A/B 테스트 & Feature Flag"
+    ]
+  },
+  "Data Engineering": {
+    "Junior": [
+      "SQL 기초 & 집계 함수", "Python Pandas & ETL 기초",
+      "데이터 웨어하우스 개념 (BigQuery/Snowflake)", "Airflow DAG 작성 기초", "데이터 품질 체크"
+    ],
+    "Mid": [
+      "Apache Spark (PySpark)", "dbt 데이터 모델링",
+      "스트리밍 처리 (Kafka + Flink)", "데이터 레이크 아키텍처 (Delta Lake)", "데이터 카탈로그 (Datahub)"
+    ],
+    "Senior": [
+      "실시간 데이터 플랫폼 설계", "Lambda/Kappa 아키텍처",
+      "데이터 메시 (Data Mesh)", "ML 피처 스토어", "데이터 거버넌스 & 컴플라이언스"
+    ]
+  }
+}
