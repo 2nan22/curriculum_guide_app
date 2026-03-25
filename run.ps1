@@ -16,10 +16,6 @@
 # 처음 실행 시 권한 오류가 나면:
 #   Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 
-# UTF-8 출력 설정 (한글 깨짐 방지)
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$OutputEncoding = [System.Text.Encoding]::UTF8
-
 param(
     [Parameter(Position=0)]
     [string]$Env,
@@ -30,6 +26,10 @@ param(
     [Parameter(ValueFromRemainingArguments=$true)]
     [string[]]$ExtraArgs
 )
+
+# UTF-8 출력 설정 (한글 깨짐 방지)
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
 
 # ── 색상 출력 ─────────────────────────────────────────
 function Info($msg)  { Write-Host "[aipath] $msg" -ForegroundColor Cyan }
