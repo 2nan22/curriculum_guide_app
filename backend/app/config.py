@@ -27,11 +27,13 @@ class Settings(BaseSettings):
 
     # Ollama 설정
     ollama_base_url: str = "http://host.docker.internal:11434"
-    ollama_model: str = "llama3.1:8b"
+    ollama_model: str = "qwen3.5:9b"
+    ollama_timeout: int = 300  # 초 단위 (대형 모델 대응)
 
     # Upstage 설정
     upstage_api_key: str = ""
-    upstage_model: str = "solar-pro"
+    upstage_model: str = "solar-pro3"
+    upstage_timeout: int = 300  # 초 단위
 
     # 데이터 경로 (Docker 볼륨 마운트 기준)
     data_dir: str = "/app/data"
