@@ -1,6 +1,5 @@
 # AI Path - Docker Compose
-# Dev 환경:  docker compose up --build
-# Prod 환경: docker compose --profile prod up --build
+# 사용법: ./run.sh [dev|prod] [up|down|build|ps|logs]
 
 services:
   # ── 백엔드 (공통) ──────────────────────────────────────
@@ -14,7 +13,7 @@ services:
     env_file: .env
     volumes:
       - ./backend:/app              # 핫리로드용 소스 마운트
-      - ./public/data:/app/data:ro  # 커리큘럼 JSON 읽기 전용 마운트
+      - ./frontend/public/data:/app/data:ro  # 추천 JSON 읽기 전용 마운트
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -24,7 +23,7 @@ services:
     networks:
       - aipath-net
 
-  # ── 프론트엔드 Dev (핫리로드) ──────────────────────────
+  # ── 프론트엔드 Dev (Vite 핫리로드) ────────────────────
   frontend:
     build:
       context: ./frontend
@@ -41,7 +40,7 @@ services:
     environment:
       - VITE_API_BASE_URL=http://localhost:8000
     restart: unless-stopped
-    profiles: ["dev", ""]          # 프로필 없이 실행하면 dev 포함
+    profiles: ["dev"]
     networks:
       - aipath-net
 
