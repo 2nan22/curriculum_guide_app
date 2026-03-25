@@ -56,6 +56,82 @@ export async function generateRoadmap({ role, level, use_guideline = true }) {
 }
 
 /**
+ * 노드 상세 정보 (미션 + 핵심 개념) 요청
+ *
+ * @param {{ node_label: string, role: string, level: string }} params
+ * @returns {Promise<{ missions: string[], concepts: string[] }>}
+ */
+export async function fetchNodeDetail({ node_label, role, level }) {
+  return request('/api/node/detail', {
+    method: 'POST',
+    body: JSON.stringify({ node_label, role, level }),
+  })
+}
+
+/**
+ * 노드 퀴즈 생성 요청
+ *
+ * @param {{ node_label: string, role: string, level: string }} params
+ * @returns {Promise<{ questions: object[] }>}
+ */
+export async function fetchNodeQuiz({ node_label, role, level }) {
+  return request('/api/node/quiz', {
+    method: 'POST',
+    body: JSON.stringify({ node_label, role, level }),
+  })
+}
+
+/**
+ * AI 튜터 SSE 스트리밍 채팅.
+ *
+ * @param {{ messages: {role:string,content:string}[], node_context: {label:string,role:string,level:string} }} params
+ * @param {(token: string) => void} onChunk
+ * @param {() => void} onDone
+ * @returns {Promise<void>}
+ */
+export async function streamChat({ messages, node_context }, onChunk, onDone) {
+  const response = await fetch(`${BASE_URL}/api/chat/stream`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, node_context }),
+  })
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}))
+    throw new Error(body.detail ?? `HTTP ${response.status}`)
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split('\n')
+    buffer = lines.pop() ?? ''
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue
+      const payload = line.slice(6).trim()
+      if (payload === '[DONE]') {
+        onDone()
+        return
+      }
+      try {
+        const parsed = JSON.parse(payload)
+        if (parsed.error) throw new Error(parsed.error)
+        if (parsed.token) onChunk(parsed.token)
+      } catch (err) {
+        throw err instanceof SyntaxError ? new Error('스트림 파싱 오류') : err
+      }
+    }
+  }
+}
+
+/**
  * 로드맵 SSE 스트리밍 요청.
  * 서버에서 토큰이 도착할 때마다 onChunk 콜백을 호출하고,
  * 스트림이 완료되면 onDone 콜백을 호출합니다.

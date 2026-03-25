@@ -65,6 +65,72 @@ def build_system_prompt(level: str) -> str:
     )
 
 
+def build_node_detail_prompt(node_label: str, role: str, level: str) -> tuple[str, str]:
+    """노드 상세 정보(학습 미션 + 핵심 개념) 생성 프롬프트를 반환합니다.
+
+    Returns:
+        (system_prompt, user_prompt) 튜플
+    """
+    tone = _LEVEL_TONE.get(level, _LEVEL_TONE["Mid"])
+    system = (
+        "당신은 IT 교육 전문가입니다.\n"
+        "주어진 기술 항목에 대한 학습 미션과 핵심 개념을 JSON으로만 반환하세요.\n"
+        "마크다운, 설명, 코드블록 없이 순수 JSON만 출력하세요.\n\n"
+        f"레벨 안내 스타일: {tone}\n\n"
+        '출력 스키마: {"missions": ["미션1", "미션2", ...], "concepts": ["개념1", "개념2", ...]}\n\n'
+        "규칙:\n"
+        f"- missions: {level} 수준에 맞는 실천 과제 3~5개\n"
+        "- concepts: 핵심 개념 키워드 5개 (짧은 명사구)\n"
+        "- 한국어로 작성"
+    )
+    user = f"직무: {role}\n숙련도: {level}\n기술 항목: {node_label}\n\n학습 미션과 핵심 개념 JSON을 생성하세요."
+    return system, user
+
+
+def build_quiz_prompt(node_label: str, role: str, level: str) -> tuple[str, str]:
+    """OX/객관식 퀴즈 3문제 생성 프롬프트를 반환합니다.
+
+    Returns:
+        (system_prompt, user_prompt) 튜플
+    """
+    tone = _LEVEL_TONE.get(level, _LEVEL_TONE["Mid"])
+    schema = (
+        '{"questions": ['
+        '{"type": "ox", "question": "질문", "options": [{"text": "O", "correct": true}, {"text": "X", "correct": false}], "explanation": "해설"},'
+        '{"type": "multiple", "question": "질문", "options": [{"text": "선택1", "correct": true}, {"text": "선택2", "correct": false}, {"text": "선택3", "correct": false}, {"text": "선택4", "correct": false}], "explanation": "해설"}'
+        "]}"
+    )
+    system = (
+        "당신은 IT 교육 퀴즈 출제 전문가입니다.\n"
+        "주어진 기술 항목에 대한 퀴즈를 JSON으로만 반환하세요.\n"
+        "마크다운, 설명, 코드블록 없이 순수 JSON만 출력하세요.\n\n"
+        f"레벨 안내 스타일: {tone}\n\n"
+        f"출력 스키마: {schema}\n\n"
+        "규칙:\n"
+        "- OX 문제 1개, 객관식(4지선다) 2개, 총 3문제\n"
+        f"- {level} 수준에 맞는 난이도\n"
+        "- 각 문제에 친절한 해설 포함\n"
+        "- 한국어로 작성"
+    )
+    user = f"직무: {role}\n숙련도: {level}\n기술 항목: {node_label}\n\n퀴즈 3문제를 JSON으로 생성하세요."
+    return system, user
+
+
+def build_chat_system_prompt(node_label: str, role: str, level: str) -> str:
+    """AI 튜터 채팅 시스템 프롬프트를 반환합니다."""
+    tone = _LEVEL_TONE.get(level, _LEVEL_TONE["Mid"])
+    return (
+        f"당신은 {role} 분야의 AI 튜터입니다.\n"
+        f"현재 학습자는 '{node_label}' 항목을 학습 중이며, 숙련도는 {level}입니다.\n"
+        f"답변 스타일: {tone}\n\n"
+        "규칙:\n"
+        "- 항상 현재 학습 중인 기술 항목과 연관지어 답변하세요\n"
+        "- 학습자의 수준에 맞는 예시와 설명을 제공하세요\n"
+        "- 격려하고 동기부여하는 톤을 유지하세요\n"
+        "- 한국어로 답변하세요"
+    )
+
+
 def build_user_prompt(role: str, level: str, guideline: dict) -> str:
     """가이드라인 키워드를 포함한 사용자 프롬프트를 반환합니다.
 

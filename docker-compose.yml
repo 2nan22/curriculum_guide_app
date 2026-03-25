@@ -1,10 +1,9 @@
-version: '3.9'
-
 # AI Path - Docker Compose
-# Dev 환경: 핫리로드 지원, .env 파일로 LLM 프로바이더 전환
-# Usage: docker compose up --build
+# Dev 환경:  docker compose up --build
+# Prod 환경: docker compose --profile prod up --build
 
 services:
+  # ── 백엔드 (공통) ──────────────────────────────────────
   backend:
     build:
       context: ./backend
@@ -25,6 +24,7 @@ services:
     networks:
       - aipath-net
 
+  # ── 프론트엔드 Dev (핫리로드) ──────────────────────────
   frontend:
     build:
       context: ./frontend
@@ -41,6 +41,25 @@ services:
     environment:
       - VITE_API_BASE_URL=http://localhost:8000
     restart: unless-stopped
+    profiles: ["dev", ""]          # 프로필 없이 실행하면 dev 포함
+    networks:
+      - aipath-net
+
+  # ── 프론트엔드 Prod (Nginx 정적 빌드) ─────────────────
+  frontend-prod:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: aipath-frontend-prod
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    restart: unless-stopped
+    profiles: ["prod"]
     networks:
       - aipath-net
 

@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.models.schemas import HealthResponse
-from app.routers import roadmap
+from app.routers import roadmap, node, chat
 from app.services.llm_service import get_llm_provider
 
 app = FastAPI(
@@ -30,6 +30,8 @@ app.add_middleware(
 
 # ── 라우터 등록 ───────────────────────────────────────
 app.include_router(roadmap.router)
+app.include_router(node.router)
+app.include_router(chat.router)
 
 
 # ── 헬스체크 ──────────────────────────────────────────
