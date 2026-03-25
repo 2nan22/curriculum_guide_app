@@ -8,6 +8,7 @@
  */
 
 import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useRoadmapGeneration } from '../../hooks/useRoadmapGeneration.js'
 import {
   Layout,
@@ -308,47 +309,61 @@ export default function SelectionPage({ onRoadmapReady }) {
     }
   }
 
-  if (step === 'role-selection') {
-    return (
-      <RoleSelectionView
-        selectedRole={selectedRole}
-        onSelect={(role) => {
-          dispatch({ type: 'SET_ROLE', payload: role.id })
-          setStep('level-selection')
-        }}
-      />
-    )
+  const pageVariants = {
+    initial: { opacity: 0, y: 24 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } },
+    exit:    { opacity: 0, y: -16, transition: { duration: 0.2 } },
   }
 
-  if (step === 'level-selection') {
-    return (
-      <LevelSelectionView
-        selectedRole={selectedRole}
-        selectedLevel={selectedLevel}
-        onSelect={(level) => {
-          dispatch({ type: 'SET_LEVEL', payload: level.id })
-          setStep('config')
-        }}
-        onBack={() => setStep('role-selection')}
-      />
-    )
-  }
+  return (
+    <AnimatePresence mode="wait">
+      {step === 'role-selection' && (
+        <motion.div key="role" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+          <RoleSelectionView
+            selectedRole={selectedRole}
+            onSelect={(role) => {
+              dispatch({ type: 'SET_ROLE', payload: role.id })
+              setStep('level-selection')
+            }}
+          />
+        </motion.div>
+      )}
 
-  if (step === 'config') {
-    return (
-      <ConfigView
-        selectedRole={selectedRole}
-        selectedLevel={selectedLevel}
-        provider={provider}
-        onProviderChange={setProvider}
-        onStart={handleStart}
-        onBack={() => setStep('level-selection')}
-        loading={loading}
-        error={apiError}
-      />
-    )
-  }
+      {step === 'level-selection' && (
+        <motion.div key="level" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+          <LevelSelectionView
+            selectedRole={selectedRole}
+            selectedLevel={selectedLevel}
+            onSelect={(level) => {
+              dispatch({ type: 'SET_LEVEL', payload: level.id })
+              setStep('config')
+            }}
+            onBack={() => setStep('role-selection')}
+          />
+        </motion.div>
+      )}
 
-  return <GeneratingView selectedLevel={selectedLevel} />
+      {step === 'config' && (
+        <motion.div key="config" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+          <ConfigView
+            selectedRole={selectedRole}
+            selectedLevel={selectedLevel}
+            provider={provider}
+            onProviderChange={setProvider}
+            onStart={handleStart}
+            onBack={() => setStep('level-selection')}
+            loading={loading}
+            error={apiError}
+          />
+        </motion.div>
+      )}
+
+      {step === 'generating' && (
+        <motion.div key="generating" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+          <GeneratingView selectedLevel={selectedLevel} />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
 }
 
