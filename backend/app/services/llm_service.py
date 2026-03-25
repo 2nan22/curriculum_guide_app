@@ -11,6 +11,8 @@ LLM 프로바이더 추상화 레이어.
 
 import time
 from abc import ABC, abstractmethod
+from datetime import datetime
+from pathlib import Path
 from typing import AsyncIterator
 import json
 import httpx
@@ -19,6 +21,23 @@ from app.config import settings
 from app.utils.logger import get_logger
 
 logger = get_logger("llm_service")
+
+_RESPONSE_DIR = Path("logs/responses")
+
+
+def _save_response(provider_name: str, model: str, content: str) -> None:
+    """LLM 응답을 logs/responses/{provider}_{yyyymmdd}_{hhmmss}.json 에 저장합니다."""
+    try:
+        _RESPONSE_DIR.mkdir(parents=True, exist_ok=True)
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = _RESPONSE_DIR / f"{provider_name}_{ts}.json"
+        filename.write_text(
+            json.dumps({"provider": provider_name, "model": model, "timestamp": datetime.now().isoformat(), "response": content}, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        logger.debug("응답 저장: %s", filename)
+    except Exception as exc:
+        logger.warning("응답 저장 실패: %s", exc)
 
 
 class BaseLLMProvider(ABC):
@@ -90,7 +109,7 @@ class OllamaProvider(BaseLLMProvider):
         start = time.perf_counter()
         payload = self._build_payload(system_prompt, user_prompt, stream=False)
         try:
-            async with httpx.AsyncClient(timeout=120) as client:
+            async with httpx.AsyncClient(timeout=settings.ollama_timeout) as client:
                 response = await client.post(
                     f"{self._base_url}{self.BASE_PATH}", json=payload
                 )
@@ -98,7 +117,9 @@ class OllamaProvider(BaseLLMProvider):
                 data = response.json()
                 elapsed_ms = int((time.perf_counter() - start) * 1000)
                 logger.info("OllamaProvider.generate 완료: %dms", elapsed_ms)
-                return data["message"]["content"]
+                content = data["message"]["content"]
+                _save_response("ollama", self._model, content)
+                return content
         except Exception as exc:
             logger.error("OllamaProvider.generate 실패: %s", exc, exc_info=True)
             raise
@@ -110,7 +131,7 @@ class OllamaProvider(BaseLLMProvider):
         payload = self._build_payload(system_prompt, user_prompt, stream=True)
         token_count = 0
         try:
-            async with httpx.AsyncClient(timeout=120) as client:
+            async with httpx.AsyncClient(timeout=settings.ollama_timeout) as client:
                 async with client.stream(
                     "POST", f"{self._base_url}{self.BASE_PATH}", json=payload
                 ) as response:
@@ -168,7 +189,7 @@ class UpstageProvider(BaseLLMProvider):
         start = time.perf_counter()
         payload = self._build_payload(system_prompt, user_prompt, stream=False)
         try:
-            async with httpx.AsyncClient(timeout=60) as client:
+            async with httpx.AsyncClient(timeout=settings.upstage_timeout) as client:
                 response = await client.post(
                     f"{self.BASE_URL}{self.CHAT_PATH}",
                     json=payload,
@@ -178,7 +199,9 @@ class UpstageProvider(BaseLLMProvider):
                 data = response.json()
                 elapsed_ms = int((time.perf_counter() - start) * 1000)
                 logger.info("UpstageProvider.generate 완료: %dms", elapsed_ms)
-                return data["choices"][0]["message"]["content"]
+                content = data["choices"][0]["message"]["content"]
+                _save_response("upstage", self._model, content)
+                return content
         except Exception as exc:
             logger.error("UpstageProvider.generate 실패: %s", exc, exc_info=True)
             raise
