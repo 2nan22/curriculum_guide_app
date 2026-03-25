@@ -16,17 +16,19 @@
 # 처음 실행 시 권한 오류가 나면:
 #   Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 
+# UTF-8 출력 설정 (한글 깨짐 방지)
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
 param(
     [Parameter(Position=0)]
-    [ValidateSet("dev","prod")]
     [string]$Env,
 
     [Parameter(Position=1)]
-    [ValidateSet("up","down","build","restart","ps","logs","shell")]
     [string]$Cmd,
 
     [Parameter(ValueFromRemainingArguments=$true)]
-    [string[]]$Extra
+    [string[]]$ExtraArgs
 )
 
 # ── 색상 출력 ─────────────────────────────────────────
@@ -34,8 +36,8 @@ function Info($msg)  { Write-Host "[aipath] $msg" -ForegroundColor Cyan }
 function Ok($msg)    { Write-Host "[aipath] $msg" -ForegroundColor Green }
 function Err($msg)   { Write-Host "[aipath] ERROR: $msg" -ForegroundColor Red }
 
-# ── 입력 검증 ─────────────────────────────────────────
-if (-not $Env -or -not $Cmd) {
+# ── 도움말 ────────────────────────────────────────────
+function Show-Usage {
     Write-Host ""
     Write-Host "  사용법: .\run.ps1 <env> <command> [options]" -ForegroundColor Yellow
     Write-Host ""
@@ -52,14 +54,20 @@ if (-not $Env -or -not $Cmd) {
     exit 1
 }
 
-$ProfileFlag = "--profile $Env"
+# ── 입력 검증 ─────────────────────────────────────────
+if (-not $Env -or -not $Cmd) { Show-Usage }
+if ($Env -ne "dev" -and $Env -ne "prod") {
+    Err "env는 'dev' 또는 'prod' 여야 합니다."
+    Show-Usage
+}
 
-function Run-DC {
-    param([string]$Args)
-    $cmd = "docker compose $ProfileFlag $Args"
-    if ($Extra) { $cmd += " " + ($Extra -join " ") }
-    Write-Host "  > $cmd" -ForegroundColor DarkGray
-    Invoke-Expression $cmd
+# ── docker compose 실행 헬퍼 ──────────────────────────
+function Invoke-DC {
+    param([string]$SubCmd)
+    $parts = @("docker", "compose", "--profile", $Env) + $SubCmd.Split(" ") + $ExtraArgs
+    $parts = $parts | Where-Object { $_ -ne "" }
+    Write-Host ("  > " + ($parts -join " ")) -ForegroundColor DarkGray
+    & $parts[0] $parts[1..($parts.Length-1)]
     if ($LASTEXITCODE -ne 0) {
         Err "명령 실행 실패 (exit code $LASTEXITCODE)"
         exit $LASTEXITCODE
@@ -70,39 +78,42 @@ function Run-DC {
 switch ($Cmd) {
     "up" {
         Info "[$Env] 컨테이너 시작..."
-        Run-DC "up -d"
+        Invoke-DC "up -d"
         Ok "[$Env] 시작 완료!"
-        if ($Env -eq "dev")  { Info "  프론트엔드 → http://localhost:5173" }
-        if ($Env -eq "prod") { Info "  프론트엔드 → http://localhost:80" }
-        Info "  백엔드 API  → http://localhost:8000"
+        if ($Env -eq "dev")  { Info "  프론트엔드 -> http://localhost:5173" }
+        if ($Env -eq "prod") { Info "  프론트엔드 -> http://localhost:80" }
+        Info "  백엔드 API  -> http://localhost:8000"
     }
     "down" {
         Info "[$Env] 컨테이너 중지 및 제거..."
-        Run-DC "down"
+        Invoke-DC "down"
         Ok "[$Env] 중지 완료."
     }
     "build" {
         Info "[$Env] 이미지 빌드..."
-        Run-DC "build"
+        Invoke-DC "build"
         Ok "[$Env] 빌드 완료."
     }
     "restart" {
         Info "[$Env] 재시작..."
-        Invoke-Expression "docker compose $ProfileFlag down"
-        Invoke-Expression "docker compose $ProfileFlag up -d --build"
+        & docker compose --profile $Env down
+        & docker compose --profile $Env up -d --build
         Ok "[$Env] 재시작 완료!"
     }
     "ps" {
-        Invoke-Expression "docker compose $ProfileFlag ps"
+        & docker compose --profile $Env ps
     }
     "logs" {
         Info "[$Env] 로그 스트리밍 (Ctrl+C로 종료)"
-        $logCmd = "docker compose $ProfileFlag logs -f"
-        if ($Extra) { $logCmd += " " + ($Extra -join " ") }
-        Invoke-Expression $logCmd
+        $logParts = @("docker", "compose", "--profile", $Env, "logs", "-f") + $ExtraArgs
+        & $logParts[0] $logParts[1..($logParts.Length-1)]
     }
     "shell" {
         Info "[백엔드] bash 접속..."
-        docker exec -it aipath-backend bash
+        & docker exec -it aipath-backend bash
+    }
+    default {
+        Err "알 수 없는 command: '$Cmd'"
+        Show-Usage
     }
 }
