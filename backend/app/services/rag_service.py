@@ -9,6 +9,10 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
+from app.utils.logger import get_logger
+
+logger = get_logger("rag_service")
+
 
 @lru_cache(maxsize=1)
 def load_guideline(data_dir: str) -> dict:
@@ -22,8 +26,15 @@ def load_guideline(data_dir: str) -> dict:
     """
     path = Path(data_dir) / "curriculum_guideline.json"
     if not path.exists():
+        logger.warning("load_guideline: 파일 없음, 빈 guideline 반환: %s", path)
         return {}
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        logger.info("load_guideline: 파일 로드 성공: %s (%d개 role)", path, len(data))
+        return data
+    except Exception as exc:
+        logger.error("load_guideline: 파일 읽기 실패: %s", exc)
+        return {}
 
 
 def get_keywords(guideline: dict, role: str, level: str) -> list[str]:
@@ -37,7 +48,9 @@ def get_keywords(guideline: dict, role: str, level: str) -> list[str]:
     Returns:
         키워드 문자열 리스트 (해당 항목 없으면 빈 리스트)
     """
-    return guideline.get(role, {}).get(level, [])
+    keywords = guideline.get(role, {}).get(level, [])
+    logger.debug("get_keywords: role=%s level=%s → %d개 키워드", role, level, len(keywords))
+    return keywords
 
 
 def inject_context(prompt: str, keywords: list[str]) -> str:

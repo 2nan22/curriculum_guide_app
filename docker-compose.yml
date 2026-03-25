@@ -14,6 +14,7 @@ services:
     volumes:
       - ./backend:/app              # 핫리로드용 소스 마운트
       - ./frontend/public/data:/app/data:ro  # 추천 JSON 읽기 전용 마운트
+      - ./logs:/app/logs            # 로그 파일을 호스트에 보존
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
