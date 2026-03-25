@@ -10,10 +10,15 @@
  *
  * 연결선: 수평 Bezier Curve (cubic)
  *   M x1,y1 C midX,y1 midX,y2 x2,y2
+ *
+ * 줌/팬: 마우스 휠(0.5x~2.5x) + 드래그, "전체 보기" 버튼으로 리셋
  */
 
-import { useMemo } from 'react'
+import { useMemo, useState, useRef, useCallback } from 'react'
+import { motion } from 'framer-motion'
+import { Maximize2 } from 'lucide-react'
 import MindmapNode from './MindmapNode.jsx'
+import ProgressBar from './ProgressBar.jsx'
 
 // ── 레이아웃 상수 ─────────────────────────────────────
 
@@ -23,17 +28,11 @@ const PADDING = { top: 60, bottom: 60 }
 const LEAF_SPACING = 72   // leaf 노드 간 최소 간격(px)
 const BRANCH_MIN_H = 100  // branch 노드 간 최소 간격(px)
 
+const SCALE_MIN = 0.5
+const SCALE_MAX = 2.5
+
 // ── 위치 계산 유틸 ────────────────────────────────────
 
-/**
- * 균등 간격 Y 좌표 배열을 계산합니다.
- *
- * @param {number} count    - 노드 수
- * @param {number} minY     - 상단 패딩 Y
- * @param {number} maxY     - 하단 패딩 Y
- * @param {number} minGap   - 최소 간격
- * @returns {number[]}
- */
 function distributeY(count, minY, maxY, minGap) {
   if (count === 1) return [(minY + maxY) / 2]
   const available = maxY - minY
@@ -43,12 +42,6 @@ function distributeY(count, minY, maxY, minGap) {
   return Array.from({ length: count }, (_, i) => startY + i * step)
 }
 
-/**
- * 로드맵 트리 데이터를 SVG 좌표 배열로 변환합니다.
- *
- * @param {object} root - 로드맵 루트 노드
- * @returns {{ nodes: object[], edges: object[] }}
- */
 function computeLayout(root) {
   const nodes = []
   const edges = []
@@ -56,10 +49,8 @@ function computeLayout(root) {
   const branches = root.children ?? []
   const rootY = CANVAS.height / 2
 
-  // Root 노드
   nodes.push({ ...root, x: COL_X.root, y: rootY, treeLevel: 0 })
 
-  // Branch 노드 Y 좌표 계산
   const branchYs = distributeY(
     branches.length,
     PADDING.top,
@@ -95,11 +86,6 @@ function computeLayout(root) {
 
 // ── 연결선 컴포넌트 ───────────────────────────────────
 
-/**
- * 두 노드를 잇는 Cubic Bezier Curve 선
- *
- * @param {{ id: string, x1: number, y1: number, x2: number, y2: number }} props
- */
 function Edge({ id, x1, y1, x2, y2 }) {
   const midX = (x1 + x2) / 2
   const d = `M ${x1},${y1} C ${midX},${y1} ${midX},${y2} ${x2},${y2}`
@@ -119,42 +105,121 @@ function Edge({ id, x1, y1, x2, y2 }) {
 
 /**
  * @param {object} props
- * @param {object} props.data         - 로드맵 루트 노드 (`roadmapData.root`)
+ * @param {object} props.data           - 로드맵 루트 노드
  * @param {string|null} props.activeNodeId
  * @param {(node: object) => void} props.onNodeClick
+ * @param {Set<string>} [props.completedNodes]  - 완료된 노드 ID Set
+ * @param {(branch: object) => number} [props.getBranchRate] - 브랜치 완료율 함수
  */
-export default function MindmapLayout({ data, activeNodeId, onNodeClick }) {
-  // data가 바뀔 때만 레이아웃 재계산
+export default function MindmapLayout({ data, activeNodeId, onNodeClick, completedNodes = new Set(), getBranchRate }) {
   const { nodes, edges } = useMemo(() => computeLayout(data), [data])
 
+  // ── 줌/팬 상태 ─────────────────────────────────────
+  const [transform, setTransform] = useState({ scale: 1, tx: 0, ty: 0 })
+  const isDragging = useRef(false)
+  const lastPos = useRef({ x: 0, y: 0 })
+  const svgRef = useRef(null)
+
+  const resetView = useCallback(() => {
+    setTransform({ scale: 1, tx: 0, ty: 0 })
+  }, [])
+
+  function handleWheel(e) {
+    e.preventDefault()
+    const delta = e.deltaY > 0 ? 0.9 : 1.1
+    setTransform((prev) => {
+      const next = Math.max(SCALE_MIN, Math.min(SCALE_MAX, prev.scale * delta))
+      return { ...prev, scale: next }
+    })
+  }
+
+  function handleMouseDown(e) {
+    if (e.button !== 0) return
+    isDragging.current = true
+    lastPos.current = { x: e.clientX, y: e.clientY }
+  }
+
+  function handleMouseMove(e) {
+    if (!isDragging.current) return
+    const dx = e.clientX - lastPos.current.x
+    const dy = e.clientY - lastPos.current.y
+    lastPos.current = { x: e.clientX, y: e.clientY }
+    setTransform((prev) => ({ ...prev, tx: prev.tx + dx, ty: prev.ty + dy }))
+  }
+
+  function handleMouseUp() {
+    isDragging.current = false
+  }
+
+  // 브랜치별 완료율 오버레이 위치 계산
+  const branchNodes = nodes.filter((n) => n.treeLevel === 1)
+
   return (
-    <div className="w-full h-full bg-slate-50 rounded-[2.5rem] border border-slate-200 shadow-inner overflow-hidden">
+    <div className="relative w-full h-full bg-slate-50 rounded-[2.5rem] border border-slate-200 shadow-inner overflow-hidden">
+      {/* 전체 보기 버튼 */}
+      <button
+        onClick={resetView}
+        title="전체 보기"
+        className="absolute top-4 right-4 z-10 p-2 bg-white/80 backdrop-blur border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors"
+      >
+        <Maximize2 size={16} className="text-slate-600" />
+      </button>
+
       <svg
+        ref={svgRef}
         viewBox={`0 0 ${CANVAS.width} ${CANVAS.height}`}
         className="w-full h-full"
+        style={{ cursor: isDragging.current ? 'grabbing' : 'grab' }}
         aria-label="커리큘럼 마인드맵"
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
       >
-        {/* 연결선 먼저 렌더 (노드 아래에 위치) */}
-        <g>
-          {edges.map((e) => (
-            <Edge key={e.id} {...e} />
-          ))}
-        </g>
+        <g transform={`translate(${transform.tx}, ${transform.ty}) scale(${transform.scale})`}>
+          {/* 연결선 먼저 렌더 */}
+          <g>
+            {edges.map((e) => (
+              <Edge key={e.id} {...e} />
+            ))}
+          </g>
 
-        {/* 노드 */}
-        <g>
-          {nodes.map((node) => (
-            <MindmapNode
-              key={node.id}
-              x={node.x}
-              y={node.y}
-              label={node.label}
-              status={node.status ?? 'locked'}
-              treeLevel={node.treeLevel}
-              isActive={activeNodeId === node.id}
-              onClick={() => onNodeClick(node)}
-            />
-          ))}
+          {/* 노드 — stagger 등장 애니메이션 */}
+          <g>
+            {nodes.map((node, i) => (
+              <motion.g
+                key={node.id}
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.05, duration: 0.25, ease: 'easeOut' }}
+              >
+                <MindmapNode
+                  x={node.x}
+                  y={node.y}
+                  label={node.label}
+                  status={node.status ?? 'locked'}
+                  treeLevel={node.treeLevel}
+                  isActive={activeNodeId === node.id}
+                  isCompleted={completedNodes.has(node.id)}
+                  onClick={() => onNodeClick(node)}
+                />
+              </motion.g>
+            ))}
+          </g>
+
+          {/* 브랜치 완료율 원형 인디케이터 */}
+          {getBranchRate && branchNodes.map((branch) => {
+            const rate = getBranchRate(
+              // 원본 트리에서 children 포함 branch 찾기
+              (data.children ?? []).find((b) => b.id === branch.id) ?? branch,
+            )
+            return (
+              <g key={`progress-${branch.id}`} transform={`translate(${branch.x - 90}, ${branch.y})`}>
+                <ProgressBar.Branch rate={rate} />
+              </g>
+            )
+          })}
         </g>
       </svg>
     </div>

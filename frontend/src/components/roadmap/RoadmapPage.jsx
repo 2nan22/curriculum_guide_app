@@ -2,27 +2,22 @@
  * @fileoverview 로드맵 메인 페이지
  *
  * 레이아웃: 헤더 + 좌(마인드맵/리스트) + 우(노드 상세)
- * sample.jsx의 3-panel 레이아웃을 따릅니다.
- *
- * 세션별 확장 예정:
- *   Session 2: 더미 데이터 → 실제 LLM 생성 데이터 교체
- *   Session 3: 우측 패널에 NodeDetailPanel, AI Tutor 추가
- *   Session 4: 진행률 바, 줌/팬 인터랙션 추가
  */
 
-import { useState } from 'react'
-import { BookOpen, Target, Layout, Brain, RefreshCw } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { BookOpen, Layout, Brain, RefreshCw } from 'lucide-react'
 import { FullLayout } from '../common/Layout.jsx'
 import { useSelection } from '../../context/SelectionContext.jsx'
+import { useProgress } from '../../hooks/useProgress.js'
 import MindmapLayout from './MindmapLayout.jsx'
 import ListView from './ListView.jsx'
 import ViewToggle from './ViewToggle.jsx'
+import NodeDetailPanel from './NodeDetailPanel.jsx'
+import AiTutorChat from './AiTutorChat.jsx'
+import ProgressBar from './ProgressBar.jsx'
 
-// ── 노드 상세 플레이스홀더 ────────────────────────────
+// ── 빈 상태 패널 ──────────────────────────────────────
 
-/**
- * 노드가 선택되지 않았을 때 표시하는 빈 상태 패널
- */
 function EmptyDetailPanel() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center text-slate-300 p-20 text-center">
@@ -35,80 +30,6 @@ function EmptyDetailPanel() {
       <p className="text-slate-400 text-sm">
         마인드맵 또는 리스트에서 학습 항목을 클릭하면<br />상세 내용이 여기에 표시됩니다.
       </p>
-    </div>
-  )
-}
-
-/**
- * 선택된 노드의 기본 정보를 표시하는 패널 (Session 3에서 NodeDetailPanel로 교체)
- *
- * @param {{ node: object }} props
- */
-function NodeSummaryPanel({ node }) {
-  const missions = node.missions ?? ['개념 이해 및 문서 학습', '실습 예제 구현', '실무 케이스 스터디']
-
-  return (
-    <div className="flex flex-1 flex-col overflow-hidden">
-      {/* 노드 헤더 */}
-      <div className="p-10 bg-slate-50/50 border-b">
-        <div className="flex items-center gap-3 mb-6">
-          <span
-            className={[
-              'px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest',
-              node.status === 'completed' ? 'bg-green-100 text-green-700' :
-              node.status === 'available' ? 'bg-blue-100 text-blue-700' :
-              'bg-slate-100 text-slate-500',
-            ].join(' ')}
-          >
-            {node.status ?? 'locked'}
-          </span>
-          {node.estimatedWeeks && (
-            <span className="text-[10px] font-bold text-slate-400 bg-white px-3 py-1.5 rounded-full border border-slate-100">
-              예상 {node.estimatedWeeks}주
-            </span>
-          )}
-        </div>
-        <h1 className="text-4xl font-black text-slate-900 mb-4 leading-tight tracking-tight">
-          {node.label}
-        </h1>
-        {node.description && (
-          <p className="text-slate-500 font-medium leading-relaxed">{node.description}</p>
-        )}
-      </div>
-
-      {/* 학습 미션 목록 */}
-      <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
-        <h4 className="flex items-center gap-2 font-black text-slate-900 mb-6 uppercase tracking-wider text-sm">
-          <Target size={18} className="text-blue-600" />
-          Learning Missions
-        </h4>
-        <div className="space-y-4">
-          {missions.map((mission, i) => (
-            <div
-              key={i}
-              className="flex items-start gap-5 p-6 bg-white rounded-3xl border border-slate-100 hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/5 transition-all cursor-pointer group"
-            >
-              <div className="mt-0.5 w-5 h-5 rounded-lg border-2 border-slate-200 group-hover:border-blue-500 flex items-center justify-center transition-all shrink-0">
-                <div className="w-2 h-2 rounded-sm bg-blue-500 opacity-0 group-hover:opacity-100 transition-all" />
-              </div>
-              <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900">
-                {mission}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* AI Tutor 플레이스홀더 (Session 3에서 구현) */}
-        <div className="mt-10 bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl">
-          <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">
-            Coming in Session 3
-          </p>
-          <h4 className="text-lg font-black mb-2">AI Master Tutor</h4>
-          <p className="text-slate-400 text-sm">
-            현재 노드의 맥락을 기억하는 AI 튜터와 퀵 퀴즈 기능이 추가될 예정입니다.
-          </p>
-        </div>
-      </div>
     </div>
   )
 }
@@ -155,16 +76,36 @@ function ErrorView({ message, onRetry }) {
 
 /**
  * @param {object}       props
- * @param {object|null}  props.data     - 로드맵 트리 데이터 (`{ root: {...} }`)
- * @param {boolean}      [props.loading] - 생성 중 여부
- * @param {string|null}  [props.error]   - 에러 메시지
- * @param {() => void}   props.onReset  - 처음으로 돌아가기
- * @param {() => void}   [props.onRetry] - 재시도 콜백
+ * @param {object|null}  props.data     - 로드맵 트리 데이터
+ * @param {boolean}      [props.loading]
+ * @param {string|null}  [props.error]
+ * @param {() => void}   props.onReset
+ * @param {() => void}   [props.onRetry]
  */
 export default function RoadmapPage({ data, loading = false, error = null, onReset, onRetry }) {
   const { state } = useSelection()
   const [viewMode, setViewMode] = useState('mindmap')
   const [activeNode, setActiveNode] = useState(null)
+
+  const root = data?.root ?? data
+
+  const { completedNodes, toggleComplete, getCompletionRate, getBranchRate } = useProgress(
+    state.role,
+    state.level,
+  )
+
+  const allNodes = useMemo(() => {
+    if (!root) return []
+    const result = []
+    function walk(node, level) {
+      result.push({ ...node, treeLevel: level })
+      ;(node.children ?? []).forEach((c) => walk(c, level + 1))
+    }
+    walk(root, 0)
+    return result
+  }, [root])
+
+  const completionRate = getCompletionRate(allNodes)
 
   if (loading) {
     return (
@@ -182,52 +123,58 @@ export default function RoadmapPage({ data, loading = false, error = null, onRes
     )
   }
 
-  const root = data?.root ?? data
-
   return (
     <FullLayout>
       {/* ── 헤더 ─────────────────────────────────────── */}
-      <nav className="h-20 border-b flex items-center justify-between px-10 bg-white/80 backdrop-blur-xl sticky top-0 z-50 shrink-0">
-        <div className="flex items-center gap-4">
+      <nav className="h-16 border-b flex items-center justify-between px-6 md:px-10 bg-white/80 backdrop-blur-xl sticky top-0 z-50 shrink-0">
+        <div className="flex items-center gap-3 md:gap-4">
           <button
             onClick={onReset}
             className="bg-slate-900 p-2.5 rounded-2xl shadow-lg shadow-slate-200 hover:bg-black transition-colors"
             title="처음으로"
           >
-            <BookOpen size={22} className="text-white" />
+            <BookOpen size={20} className="text-white" />
           </button>
           <div>
-            <span className="font-black text-xl tracking-tight">AI Path</span>
+            <span className="font-black text-lg md:text-xl tracking-tight">AI Path</span>
             {state.role && (
-              <span className="ml-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">
+              <span className="ml-2 md:ml-3 text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-widest hidden sm:inline">
                 {state.role} · {state.level}
               </span>
             )}
           </div>
         </div>
 
-        <ViewToggle mode={viewMode} onChange={setViewMode} />
+        <div className="flex items-center gap-4">
+          {/* 전체 진행률 — 헤더 우측 */}
+          <div className="hidden sm:block">
+            <ProgressBar.Header rate={completionRate} />
+          </div>
+          <ViewToggle mode={viewMode} onChange={setViewMode} />
+        </div>
       </nav>
 
       {/* ── 본문 2-panel ────────────────────────────── */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
         {/* 좌: 마인드맵 / 리스트 */}
-        <section className="flex-[1.4] p-10 flex flex-col overflow-hidden bg-slate-50/30">
-          <div className="mb-6">
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+        <section className="flex-[1.4] p-4 md:p-10 flex flex-col overflow-hidden bg-slate-50/30 md:min-h-0 min-h-[40vh]">
+          <div className="mb-4 md:mb-6">
+            <h2 className="text-xl md:text-3xl font-black text-slate-900 tracking-tight">
               {viewMode === 'mindmap' ? '인터랙티브 마인드맵' : '커리큘럼 리스트'}
             </h2>
-            <p className="text-slate-500 mt-1 font-medium text-sm">
+            <p className="text-slate-500 mt-1 font-medium text-sm hidden md:block">
               핵심(Core)에서 심화(Leaf)로 기술을 확장하세요.
             </p>
           </div>
 
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden min-h-0">
             {viewMode === 'mindmap' ? (
               <MindmapLayout
                 data={root}
                 activeNodeId={activeNode?.id ?? null}
                 onNodeClick={setActiveNode}
+                completedNodes={completedNodes}
+                getBranchRate={getBranchRate}
               />
             ) : (
               <ListView
@@ -240,14 +187,28 @@ export default function RoadmapPage({ data, loading = false, error = null, onRes
         </section>
 
         {/* 우: 노드 상세 */}
-        <section className="flex-1 border-l bg-white flex flex-col overflow-hidden">
+        <section className="flex-1 border-l border-t md:border-t-0 bg-white flex flex-col overflow-hidden md:min-h-0">
           {activeNode ? (
-            <NodeSummaryPanel node={activeNode} />
+            <NodeDetailPanel
+              node={activeNode}
+              role={state.role}
+              level={state.level}
+              visible={!!activeNode}
+              completedNodes={completedNodes}
+              onToggleComplete={toggleComplete}
+            />
           ) : (
             <EmptyDetailPanel />
           )}
         </section>
       </div>
+
+      {/* AI 튜터 플로팅 채팅창 */}
+      <AiTutorChat
+        activeNode={activeNode}
+        role={state.role}
+        level={state.level}
+      />
     </FullLayout>
   )
 }

@@ -12,6 +12,8 @@
  *   locked    → slate-200 (잠금)
  */
 
+import { memo } from 'react'
+
 /** @type {Record<string, {bg: string, text: string, stroke: string}>} */
 const STATUS_COLORS = {
   completed: { bg: '#22c55e', text: '#ffffff', stroke: '#16a34a' },
@@ -28,24 +30,27 @@ const NODE_SIZES = {
 
 /**
  * @param {object} props
- * @param {number} props.x            - SVG 중심 X 좌표
- * @param {number} props.y            - SVG 중심 Y 좌표
- * @param {string} props.label        - 노드 텍스트
+ * @param {number} props.x              - SVG 중심 X 좌표
+ * @param {number} props.y              - SVG 중심 Y 좌표
+ * @param {string} props.label          - 노드 텍스트
  * @param {'completed'|'available'|'locked'} props.status
- * @param {number} [props.treeLevel=2] - 트리 깊이 (0=root, 1=branch, 2=leaf)
+ * @param {number} [props.treeLevel=2]  - 트리 깊이 (0=root, 1=branch, 2=leaf)
  * @param {boolean} [props.isActive=false] - 현재 선택된 노드 여부
+ * @param {boolean} [props.isCompleted=false] - 학습 완료 여부
  * @param {() => void} [props.onClick]
  */
-export default function MindmapNode({
+const MindmapNode = memo(function MindmapNode({
   x,
   y,
   label,
   status = 'locked',
   treeLevel = 2,
   isActive = false,
+  isCompleted = false,
   onClick,
 }) {
-  const colors = STATUS_COLORS[status] ?? STATUS_COLORS.locked
+  const effectiveStatus = isCompleted ? 'completed' : status
+  const colors = STATUS_COLORS[effectiveStatus] ?? STATUS_COLORS.locked
   const size = NODE_SIZES[treeLevel] ?? NODE_SIZES[2]
 
   const halfW = size.width / 2
@@ -88,7 +93,7 @@ export default function MindmapNode({
         style={{ filter: isActive ? 'drop-shadow(0 4px 12px rgba(59,130,246,0.35))' : 'none' }}
       />
 
-      {/* 레이블 텍스트 (20자 초과 시 말줄임) */}
+      {/* 레이블 텍스트 (16자 초과 시 말줄임) */}
       <text
         textAnchor="middle"
         dominantBaseline="middle"
@@ -102,4 +107,6 @@ export default function MindmapNode({
       </text>
     </g>
   )
-}
+})
+
+export default MindmapNode
