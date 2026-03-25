@@ -1,0 +1,233 @@
+{
+  "Backend": {
+    "Junior": [
+      "HTTP/REST API 기초",
+      "CRUD 구현 (Spring Boot / FastAPI)",
+      "Git 브랜치 전략 (Git Flow)",
+      "관계형 DB 설계 (MySQL/PostgreSQL)",
+      "단위 테스트 작성 (JUnit / pytest)",
+      "JSON 직렬화/역직렬화",
+      "환경 변수 & 설정 관리 (.env)",
+      "기본 인증 구현 (Session / JWT 기초)",
+      "페이지네이션 & 정렬 API 설계",
+      "HTTP 상태 코드 & 에러 핸들링"
+    ],
+    "Mid": [
+      "JPA/ORM 최적화 (N+1 문제 해결)",
+      "Redis 캐싱 전략 (Cache-Aside / Write-Through)",
+      "메시지 큐 (Kafka/RabbitMQ) 비동기 처리",
+      "TDD & BDD (테스트 주도 개발)",
+      "Docker & CI/CD 파이프라인 구축",
+      "API 인증/인가 (JWT/OAuth2/OIDC)",
+      "데이터베이스 인덱스 최적화",
+      "트랜잭션 관리 & 격리 수준",
+      "API Rate Limiting & Throttling",
+      "Swagger/OpenAPI 문서 자동화",
+      "로깅 & 분산 추적 (Slf4j / OpenTelemetry)"
+    ],
+    "Senior": [
+      "대규모 시스템 설계 (Alex Xu 접근법)",
+      "MSA 아키텍처 패턴 (Saga / CQRS / Event Sourcing)",
+      "성능 프로파일링 & APM (Datadog / New Relic)",
+      "Database Sharding & Replication 전략",
+      "보안 설계 (OWASP Top 10 대응)",
+      "서비스 메시 (Istio / Envoy)",
+      "API Gateway 설계 & 운영",
+      "그레이스풀 셧다운 & 무중단 배포",
+      "DDD (도메인 주도 설계) 적용",
+      "기술 부채 관리 & 리팩터링 전략"
+    ]
+  },
+  "Frontend": {
+    "Junior": [
+      "HTML/CSS 기초 & 반응형 레이아웃",
+      "JavaScript ES2024 (async/await, 구조분해)",
+      "React 19 기초 (JSX, useState, useEffect)",
+      "Git & GitHub 협업 워크플로우",
+      "Chrome DevTools 디버깅",
+      "Flexbox & CSS Grid 마스터",
+      "컴포넌트 분리 & Props 설계",
+      "React Router 기초 (SPA 라우팅)",
+      "Fetch API & Axios HTTP 통신",
+      "접근성 (a11y) 기초 & 시맨틱 HTML"
+    ],
+    "Mid": [
+      "React 19 고급 패턴 (use, Suspense, 동시성)",
+      "TypeScript 실무 적용 (제네릭, 유틸리티 타입)",
+      "상태 관리 (Zustand / Jotai / Recoil)",
+      "성능 최적화 (Core Web Vitals, Code Splitting)",
+      "테스트 (Vitest / React Testing Library)",
+      "커스텀 훅 설계 & 재사용 패턴",
+      "폼 관리 (React Hook Form / Zod 유효성 검사)",
+      "CSS-in-JS vs Tailwind 트레이드오프",
+      "스토리북 (Storybook) 컴포넌트 문서화",
+      "에러 바운더리 & 글로벌 에러 처리",
+      "번들러 설정 (Vite / Webpack 최적화)"
+    ],
+    "Senior": [
+      "마이크로 프론트엔드 (Module Federation)",
+      "Web Workers & WebAssembly 활용",
+      "디자인 시스템 구축 & 토큰 관리",
+      "SSR/SSG 아키텍처 (Next.js App Router)",
+      "번들 사이즈 최적화 & Tree-shaking",
+      "프론트엔드 아키텍처 설계 원칙",
+      "크로스 브라우저 호환성 & 폴리필 전략",
+      "PWA (Service Worker / Offline-first)",
+      "A/B 테스트 & Feature Flag 시스템",
+      "성능 예산 & Lighthouse CI 자동화"
+    ]
+  },
+  "AI/ML": {
+    "Junior": [
+      "Python 기초 & NumPy/Pandas 데이터 처리",
+      "머신러닝 개념 (선형/로지스틱 회귀)",
+      "Scikit-learn 분류·회귀·클러스터링 실습",
+      "데이터 전처리 & EDA (탐색적 분석)",
+      "Jupyter / Google Colab 환경 구성",
+      "데이터 시각화 (Matplotlib / Seaborn)",
+      "트레인/테스트 분할 & 교차검증",
+      "피처 엔지니어링 기초",
+      "모델 평가 지표 (정확도, F1, AUC)",
+      "Git 기반 ML 실험 관리"
+    ],
+    "Mid": [
+      "딥러닝 기초 (PyTorch / TensorFlow)",
+      "CNN/RNN/Transformer 아키텍처 이해",
+      "LLM 파인튜닝 (LoRA / QLoRA / PEFT)",
+      "RAG 파이프라인 구축 (LangChain / LlamaIndex)",
+      "Vector DB 활용 (Pinecone / Chroma / Weaviate)",
+      "HuggingFace Transformers & Datasets",
+      "MLflow 실험 추적 & 모델 레지스트리",
+      "데이터 증강 & 노이즈 처리",
+      "하이퍼파라미터 튜닝 (Optuna)",
+      "GPU 활용 & 배치 처리 최적화",
+      "프롬프트 엔지니어링 기법 (Few-shot, CoT)"
+    ],
+    "Senior": [
+      "LLM 프로덕션 배포 (vLLM / TGI / Triton)",
+      "MLOps & 모델 모니터링 (Evidently / Whylogs)",
+      "멀티모달 모델 설계 (Vision-Language)",
+      "AI 시스템 평가 프레임워크 설계",
+      "분산 학습 (DeepSpeed / FSDP / Megatron-LM)",
+      "AI 안전성 & 편향 감지",
+      "온라인 학습 & 컨티뉴얼 러닝",
+      "AI 인프라 비용 최적화 (양자화, 증류)",
+      "도메인 특화 LLM 구축 전략",
+      "AI 거버넌스 & 규정 준수 (EU AI Act)"
+    ]
+  },
+  "DevOps": {
+    "Junior": [
+      "Linux 기초 & 쉘 스크립트 (Bash)",
+      "Docker 이미지 빌드 & 컨테이너 관리",
+      "GitHub Actions CI/CD 파이프라인 기초",
+      "Nginx 웹서버 설정 & 리버스 프록시",
+      "클라우드 기초 (AWS EC2/S3/RDS)",
+      "SSH 키 관리 & 보안 접속",
+      "환경별 배포 (dev/staging/prod) 전략",
+      "기본 모니터링 (CPU/메모리/디스크)",
+      "DNS & 네트워크 기초 (TCP/IP, HTTP)",
+      "로그 수집 & 분석 (journalctl, tail)"
+    ],
+    "Mid": [
+      "Kubernetes Pod/Deployment/Service/Ingress",
+      "Helm Chart 작성 & 패키지 관리",
+      "Terraform IaC (AWS / GCP / Azure)",
+      "Prometheus & Grafana 모니터링 대시보드",
+      "로그 집계 (ELK Stack / Loki + Grafana)",
+      "컨테이너 보안 스캔 (Trivy / Snyk)",
+      "Secret 관리 (HashiCorp Vault / AWS Secrets Manager)",
+      "서비스 메시 기초 (Istio 사이드카)",
+      "블루/그린 & 카나리 배포 전략",
+      "GitHub Actions 고급 (매트릭스 빌드, 재사용 워크플로우)"
+    ],
+    "Senior": [
+      "멀티 클러스터 K8s 관리 (Cluster API / ArgoCD)",
+      "SRE & SLO/SLA/Error Budget 설계",
+      "FinOps & 클라우드 비용 최적화",
+      "제로 다운타임 배포 전략 (PodDisruptionBudget)",
+      "카오스 엔지니어링 (Chaos Monkey / LitmusChaos)",
+      "플랫폼 엔지니어링 & Internal Developer Platform",
+      "GitOps 워크플로우 (Flux / ArgoCD)",
+      "보안 컴플라이언스 자동화 (OPA / Kyverno)",
+      "대규모 인프라 비용 거버넌스",
+      "온콜 & 인시던트 관리 프로세스"
+    ]
+  },
+  "Mobile": {
+    "Junior": [
+      "Swift/Kotlin 기초 문법 & OOP",
+      "React Native 또는 Flutter 기초",
+      "UI 컴포넌트 & 스택/탭 네비게이션",
+      "HTTP 통신 & JSON 파싱 (Dio / URLSession)",
+      "앱 배포 (App Store / Google Play Store)",
+      "레이아웃 시스템 (AutoLayout / FlexLayout)",
+      "이미지 & 에셋 관리",
+      "AsyncStorage / SharedPreferences 로컬 저장",
+      "기본 디버깅 (Xcode / Android Studio)",
+      "앱 라이프사이클 이해"
+    ],
+    "Mid": [
+      "상태 관리 (Redux Toolkit / Riverpod / TCA)",
+      "오프라인 동기화 & 로컬 DB (SQLite / Realm)",
+      "푸시 알림 (FCM / APNs) & 딥링크",
+      "성능 최적화 (FlatList 가상화 / Frame Drop 분석)",
+      "앱 보안 (인증서 피닝 / 루팅 탐지)",
+      "카메라 / 위치 / 센서 Native API 연동",
+      "앱 내 구매 (In-App Purchase)",
+      "국제화 (i18n) & 다국어 지원",
+      "Crashlytics & 에러 모니터링",
+      "애니메이션 (Reanimated 3 / Core Animation)"
+    ],
+    "Senior": [
+      "네이티브 모듈 개발 (JSI Bridge / Swift-Kotlin Interop)",
+      "멀티플랫폼 코드 공유 전략 (KMP / Expo Modules)",
+      "앱 아키텍처 (MVVM / Clean Architecture / TCA)",
+      "CI/CD 자동화 (Fastlane / Bitrise / EAS Build)",
+      "A/B 테스트 & Feature Flag (Firebase Remote Config)",
+      "앱 성능 최적화 (앱 시작 시간 / 메모리 누수 분석)",
+      "보안 감사 & OWASP Mobile Top 10 대응",
+      "디자인 시스템 & 접근성 (VoiceOver / TalkBack)",
+      "대규모 앱 모듈화 & 모노레포 전략",
+      "앱 스토어 최적화 (ASO) & 사용자 리텐션"
+    ]
+  },
+  "Data Engineering": {
+    "Junior": [
+      "SQL 기초 & 집계 함수 (GROUP BY, Window 함수)",
+      "Python Pandas & ETL 기초 파이프라인",
+      "데이터 웨어하우스 개념 (BigQuery / Snowflake / Redshift)",
+      "Airflow DAG 작성 기초",
+      "데이터 품질 체크 & 이상값 탐지",
+      "CSV/JSON/Parquet 파일 포맷 이해",
+      "기본 데이터 모델링 (Star Schema / Snowflake Schema)",
+      "Git 기반 데이터 파이프라인 관리",
+      "클라우드 스토리지 활용 (S3 / GCS)",
+      "API 데이터 수집 & 배치 처리 기초"
+    ],
+    "Mid": [
+      "Apache Spark (PySpark) 분산 처리",
+      "dbt 데이터 모델링 & 테스트 자동화",
+      "스트리밍 처리 (Kafka + Flink / Spark Streaming)",
+      "데이터 레이크 아키텍처 (Delta Lake / Iceberg / Hudi)",
+      "데이터 카탈로그 (DataHub / Apache Atlas)",
+      "데이터 파이프라인 모니터링 & 알림",
+      "증분 로딩 (CDC / Upsert) 패턴",
+      "열 지향 스토리지 최적화 (Parquet 파티셔닝)",
+      "데이터 계보 추적 (Data Lineage)",
+      "Airflow DAG 고급 (SLA, 의존성 관리, 동적 태스크)"
+    ],
+    "Senior": [
+      "실시간 데이터 플랫폼 설계 (Lambda/Kappa 아키텍처)",
+      "데이터 메시 (Data Mesh) 도메인 오너십",
+      "ML 피처 스토어 설계 (Feast / Tecton)",
+      "데이터 거버넌스 & 컴플라이언스 (GDPR / CCPA)",
+      "대규모 데이터 비용 최적화 전략",
+      "멀티 클라우드 데이터 아키텍처",
+      "데이터 플랫폼 팀 리딩 & 로드맵 수립",
+      "실시간 ML 서빙 파이프라인 설계",
+      "데이터 품질 SLA & 데이터 계약 (Data Contract)",
+      "FinOps for Data (쿼리 비용 최적화)"
+    ]
+  }
+}
