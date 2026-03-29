@@ -14,6 +14,7 @@ import { fetchNodeDetail } from '../services/apiService.js'
  */
 export function useNodeDetail(role, level) {
   const cache = useRef(new Map())
+  const abortRef = useRef(null)
   const [detail, setDetail] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -28,13 +29,19 @@ export function useNodeDetail(role, level) {
         return
       }
 
+      // 이전 요청 취소
+      abortRef.current?.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
+
       setLoading(true)
       setError(null)
       try {
-        const data = await fetchNodeDetail({ node_label: nodeLabel, role, level })
+        const data = await fetchNodeDetail({ node_label: nodeLabel, role, level }, controller.signal)
         cache.current.set(key, data)
         setDetail(data)
       } catch (err) {
+        if (err.name === 'AbortError') return
         setError(err.message)
       } finally {
         setLoading(false)

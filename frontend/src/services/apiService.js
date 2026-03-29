@@ -61,10 +61,11 @@ export async function generateRoadmap({ role, level, use_guideline = true }) {
  * @param {{ node_label: string, role: string, level: string }} params
  * @returns {Promise<{ missions: string[], concepts: string[] }>}
  */
-export async function fetchNodeDetail({ node_label, role, level }) {
+export async function fetchNodeDetail({ node_label, role, level }, signal) {
   return request('/api/node/detail', {
     method: 'POST',
     body: JSON.stringify({ node_label, role, level }),
+    signal,
   })
 }
 

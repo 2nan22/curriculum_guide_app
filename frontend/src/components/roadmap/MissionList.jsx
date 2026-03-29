@@ -5,7 +5,7 @@ import { useMissionGuide } from '../../hooks/useMissionGuide.js'
 export default function MissionList({ missions, nodeLabel, role, level, onAskTutor }) {
   const [checked, setChecked] = useState({})
   const [openMission, setOpenMission] = useState(null)
-  const { guide, loading: guideLoading, load: loadGuide } = useMissionGuide(nodeLabel, role, level)
+  const { guide, loading: guideLoading, error, load: loadGuide } = useMissionGuide(nodeLabel, role, level)
 
   function toggle(i) {
     setChecked((prev) => ({ ...prev, [i]: !prev[i] }))
@@ -51,6 +51,8 @@ export default function MissionList({ missions, nodeLabel, role, level, onAskTut
                     <div key={j} className="h-12 bg-slate-100 rounded-2xl animate-pulse" />
                   ))}
                 </div>
+              ) : error ? (
+                <p className="text-xs text-red-500 text-center py-4">가이드를 불러오지 못했습니다.</p>
               ) : guide ? (
                 <>
                   <ol className="space-y-4">
