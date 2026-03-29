@@ -5,7 +5,7 @@
  * OX/객관식 3문제 표시, 정답 제출 후 해설 표시
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Zap, CheckCircle, XCircle, RotateCcw, Loader2 } from 'lucide-react'
 import { fetchNodeQuiz } from '../../services/apiService.js'
 
@@ -91,6 +91,10 @@ export default function QuickQuiz({ node, role, level }) {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    reset()
+  }, [node?.id])
 
   function reset() {
     setQuestions(null)
