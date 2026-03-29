@@ -23,7 +23,7 @@ const TABS = [
 ]
 
 // ── 미션 체크리스트 ────────────────────────────────────
-function MissionList({ missions, loading, nodeLabel, role, level }) {
+function MissionList({ missions, loading, nodeLabel, role, level, onAskTutor }) {
   const [checked, setChecked] = useState({})
   const [openMission, setOpenMission] = useState(null)
   const { guide, loading: guideLoading, load: loadGuide } = useMissionGuide(nodeLabel, role, level)
@@ -84,19 +84,29 @@ function MissionList({ missions, loading, nodeLabel, role, level }) {
                   ))}
                 </div>
               ) : guide ? (
-                <ol className="space-y-4">
-                  {guide.steps.map((step, j) => (
-                    <li key={j} className="flex gap-4">
-                      <span className="shrink-0 w-6 h-6 bg-blue-600 text-white text-xs font-black rounded-full flex items-center justify-center mt-0.5">
-                        {j + 1}
-                      </span>
-                      <div>
-                        <p className="text-sm font-black text-slate-900 mb-1">{step.title}</p>
-                        <p className="text-xs text-slate-500 leading-relaxed">{step.description}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
+                <>
+                  <ol className="space-y-4">
+                    {guide.steps.map((step, j) => (
+                      <li key={j} className="flex gap-4">
+                        <span className="shrink-0 w-6 h-6 bg-blue-600 text-white text-xs font-black rounded-full flex items-center justify-center mt-0.5">
+                          {j + 1}
+                        </span>
+                        <div>
+                          <p className="text-sm font-black text-slate-900 mb-1">{step.title}</p>
+                          <p className="text-xs text-slate-500 leading-relaxed">{step.description}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                  {onAskTutor && (
+                    <button
+                      onClick={() => onAskTutor(`${nodeLabel} - ${openMission} 미션을 수행하는 방법을 자세히 알려주세요.`)}
+                      className="mt-4 w-full py-2.5 text-xs font-black text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-2xl transition-colors"
+                    >
+                      AI 튜터에게 자세히 물어보기
+                    </button>
+                  )}
+                </>
               ) : null}
             </div>
           )}
@@ -296,7 +306,7 @@ function DocList({ docs }) {
  * @param {Set<string>} props.completedNodes - 완료된 노드 ID Set
  * @param {(id: string) => void} props.onToggleComplete - 완료 토글 콜백
  */
-export default function NodeDetailPanel({ node, role, level, visible, completedNodes = new Set(), onToggleComplete }) {
+export default function NodeDetailPanel({ node, role, level, visible, completedNodes = new Set(), onToggleComplete, onAskTutor }) {
   const [activeTab, setActiveTab] = useState('missions')
   const [recs, setRecs] = useState({ books: [], lectures: [], matchedKeyword: null })
 
@@ -409,6 +419,7 @@ export default function NodeDetailPanel({ node, role, level, visible, completedN
               nodeLabel={node?.label}
               role={role}
               level={level}
+              onAskTutor={onAskTutor}
             />
             <QuickQuiz node={node} role={role} level={level} />
           </>

@@ -94,6 +94,12 @@ export default function RoadmapPage({ data, loading = false, error = null, onRes
     state.level,
   )
 
+  const [tutorMessage, setTutorMessage] = useState(null)
+
+  function sendToTutor(text) {
+    setTutorMessage({ text, id: Date.now() })
+  }
+
   const allNodes = useMemo(() => {
     if (!root) return []
     const result = []
@@ -197,6 +203,7 @@ export default function RoadmapPage({ data, loading = false, error = null, onRes
               visible={!!activeNode}
               completedNodes={completedNodes}
               onToggleComplete={toggleComplete}
+              onAskTutor={sendToTutor}
             />
           ) : (
             <EmptyDetailPanel />
@@ -209,6 +216,7 @@ export default function RoadmapPage({ data, loading = false, error = null, onRes
         activeNode={activeNode}
         role={state.role}
         level={state.level}
+        pendingMessage={tutorMessage}
       />
     </FullLayout>
   )

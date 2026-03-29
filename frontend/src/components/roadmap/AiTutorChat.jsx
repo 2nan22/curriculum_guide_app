@@ -60,7 +60,7 @@ function MessageBubble({ msg }) {
  * @param {string}      props.role       - 현재 역할
  * @param {string}      props.level      - 현재 레벨
  */
-export default function AiTutorChat({ activeNode, role, level }) {
+export default function AiTutorChat({ activeNode, role, level, pendingMessage }) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
@@ -89,10 +89,17 @@ export default function AiTutorChat({ activeNode, role, level }) {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  async function send() {
-    const text = input.trim()
+  // pendingMessage가 바뀌면 채팅창 열고 자동 전송
+  useEffect(() => {
+    if (!pendingMessage) return
+    setOpen(true)
+    send(pendingMessage.text)
+  }, [pendingMessage?.id])
+
+  async function send(overrideText) {
+    const text = (overrideText ?? input).trim()
     if (!text || streaming) return
-    setInput('')
+    if (!overrideText) setInput('')
 
     const userMsg = { role: 'user', content: text, id: Date.now() }
     const assistantId = Date.now() + 1
