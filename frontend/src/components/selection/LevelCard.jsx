@@ -26,7 +26,7 @@ export default function LevelCard({ level, selected, onSelect }) {
   const Icon = level.icon
 
   return (
-    <Card selected={selected} onClick={onSelect} className="p-10 flex flex-col items-center text-center group">
+    <Card selected={selected} onClick={onSelect} className="p-10 flex flex-col items-center text-center group hover:scale-[1.02] transition-transform duration-200">
       {/* 아이콘 원형 배경 */}
       <div
         className={[

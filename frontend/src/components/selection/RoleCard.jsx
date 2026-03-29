@@ -26,7 +26,7 @@ export default function RoleCard({ role, selected, onSelect }) {
   const Icon = role.icon
 
   return (
-    <Card selected={selected} onClick={onSelect} className="p-8 group">
+    <Card selected={selected} onClick={onSelect} className="p-8 group hover:scale-[1.02] transition-transform duration-200">
       <div className="flex items-start gap-5">
         {/* 아이콘 영역: 선택 또는 hover 시 파란색으로 전환 */}
         <div
