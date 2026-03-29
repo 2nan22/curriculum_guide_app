@@ -102,11 +102,16 @@ class NodeResources(BaseModel):
     docs: list[ResourceDoc] = []
 
 
+class ConceptItem(BaseModel):
+    term: str
+    description: str
+
+
 class NodeDetailResponse(BaseModel):
     """노드 상세 정보 응답."""
 
     missions: list[str]
-    concepts: list[str]
+    concepts: list[ConceptItem]
     resources: NodeResources = NodeResources()
 
 

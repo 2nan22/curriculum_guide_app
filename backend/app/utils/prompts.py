@@ -77,7 +77,7 @@ def build_node_detail_prompt(node_label: str, role: str, level: str) -> tuple[st
         "주어진 기술 항목에 대한 학습 미션과 핵심 개념을 JSON으로만 반환하세요.\n"
         "마크다운, 설명, 코드블록 없이 순수 JSON만 출력하세요.\n\n"
         f"레벨 안내 스타일: {tone}\n\n"
-        '출력 스키마: {"missions": ["미션1", "미션2", ...], "concepts": ["개념1", "개념2", ...], '
+        '출력 스키마: {"missions": ["미션1", "미션2", ...], "concepts": [{"term": "개념명", "description": "한 줄 설명"}], '
         '"resources": {'
         '"books": [{"title": "제목", "author": "저자", "description": "설명"}], '
         '"lectures": [{"title": "강의명", "platform": "플랫폼", "instructor": "강사명", "free": true/false, "description": "설명"}], '
@@ -85,7 +85,7 @@ def build_node_detail_prompt(node_label: str, role: str, level: str) -> tuple[st
         "}}\n\n"
         "규칙:\n"
         f"- missions: {level} 수준에 맞는 실천 과제 3~5개\n"
-        "- concepts: 핵심 개념 키워드 5개 (짧은 명사구)\n"
+        "- concepts: 핵심 개념 5개 (term: 짧은 명사구, description: 1~2문장 설명)\n"
         "- resources.books: 해당 기술 학습에 적합한 서적 1~3권 (한국어 서적 우선)\n"
         "- resources.lectures: 인프런·유데미 등 유명 플랫폼 강의 1~3개\n"
         "- resources.docs: 공식 문서 또는 레퍼런스 1~2개 (실제 존재하는 URL만)\n"

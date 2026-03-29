@@ -74,7 +74,13 @@ async def get_node_detail(body: NodeDetailRequest) -> NodeDetailResponse:
             f"{body.node_label} 핵심 기능 실습 예제 구현",
             "실무 적용 사례 분석 및 코드 리뷰",
         ]
-        concepts = [body.node_label, "기초 개념", "실습", "문서", "적용"]
+        concepts = [
+            {"term": body.node_label, "description": f"{body.node_label}의 핵심 개념입니다."},
+            {"term": "기초 개념", "description": "기초부터 차근차근 학습합니다."},
+            {"term": "실습", "description": "직접 코드를 작성하며 익힙니다."},
+            {"term": "문서", "description": "공식 문서를 통해 깊이 있게 이해합니다."},
+            {"term": "적용", "description": "실무 프로젝트에 적용해 봅니다."},
+        ]
         resources = {}
 
     result = {"missions": missions, "concepts": concepts, "resources": resources}
