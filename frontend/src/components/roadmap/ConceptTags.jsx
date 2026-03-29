@@ -1,31 +1,43 @@
 import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 
 export default function ConceptTags({ concepts }) {
   const [openTerm, setOpenTerm] = useState(null)
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="grid grid-cols-2 gap-3">
       {concepts.map((concept, i) => {
         const isOpen = openTerm === concept.term
         return (
-          <div key={i} className="flex flex-col">
-            <button
-              onClick={() => setOpenTerm(isOpen ? null : concept.term)}
-              className={[
-                'px-4 py-2 text-sm font-bold rounded-full border transition-all',
-                isOpen
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100',
-              ].join(' ')}
-            >
-              {concept.term}
-            </button>
+          <button
+            key={i}
+            type="button"
+            onClick={() => setOpenTerm(isOpen ? null : concept.term)}
+            className={[
+              'text-left p-4 rounded-2xl border transition-all duration-200',
+              isOpen
+                ? 'bg-blue-600 border-blue-600 shadow-lg shadow-blue-500/20 col-span-2'
+                : 'bg-white border-slate-100 hover:border-blue-200 hover:shadow-md hover:shadow-blue-500/5',
+            ].join(' ')}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className={`text-sm font-black tracking-tight ${isOpen ? 'text-white' : 'text-slate-800'}`}>
+                {concept.term}
+              </span>
+              <ChevronDown
+                size={14}
+                className={[
+                  'shrink-0 transition-transform duration-200',
+                  isOpen ? 'rotate-180 text-blue-200' : 'text-slate-300',
+                ].join(' ')}
+              />
+            </div>
             {isOpen && (
-              <div className="mt-2 px-4 py-3 bg-blue-50 border border-blue-100 rounded-2xl text-xs text-blue-700 leading-relaxed max-w-full max-h-36 overflow-y-auto">
+              <p className="mt-3 text-xs text-blue-100 leading-relaxed font-medium">
                 {concept.description}
-              </div>
+              </p>
             )}
-          </div>
+          </button>
         )
       })}
     </div>
