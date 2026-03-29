@@ -23,6 +23,8 @@ export function useRoadmapGeneration() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [loadingRole, setLoadingRole] = useState(null)
+  const [loadingLevel, setLoadingLevel] = useState(null)
 
   /**
    * 로드맵 생성을 요청합니다.
@@ -34,6 +36,8 @@ export function useRoadmapGeneration() {
    */
   async function generate(role, level) {
     setLoading(true)
+    setLoadingRole(role)
+    setLoadingLevel(level)
     setError(null)
     try {
       const result = await generateRoadmap({ role, level })
@@ -44,8 +48,10 @@ export function useRoadmapGeneration() {
       throw err
     } finally {
       setLoading(false)
+      setLoadingRole(null)
+      setLoadingLevel(null)
     }
   }
 
-  return { data, loading, error, generate }
+  return { data, loading, error, generate, loadingRole, loadingLevel }
 }
