@@ -76,11 +76,38 @@ class HealthResponse(BaseModel):
     model: str
 
 
+class ResourceBook(BaseModel):
+    title: str
+    author: str
+    description: str
+
+
+class ResourceLecture(BaseModel):
+    title: str
+    platform: str
+    instructor: str | None = None
+    free: bool = False
+    description: str
+
+
+class ResourceDoc(BaseModel):
+    title: str
+    url: str
+    description: str
+
+
+class NodeResources(BaseModel):
+    books: list[ResourceBook] = []
+    lectures: list[ResourceLecture] = []
+    docs: list[ResourceDoc] = []
+
+
 class NodeDetailResponse(BaseModel):
     """노드 상세 정보 응답."""
 
     missions: list[str]
     concepts: list[str]
+    resources: NodeResources = NodeResources()
 
 
 class QuizOption(BaseModel):

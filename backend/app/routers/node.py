@@ -63,6 +63,7 @@ async def get_node_detail(body: NodeDetailRequest) -> NodeDetailResponse:
         data = extract_json(raw)
         missions = data.get("missions", [])
         concepts = data.get("concepts", [])
+        resources = data.get("resources", {})
         if not isinstance(missions, list) or not isinstance(concepts, list):
             raise ValueError("invalid shape")
         logger.info("[detail] LLM 응답 파싱 성공, 캐시 저장")
@@ -74,8 +75,9 @@ async def get_node_detail(body: NodeDetailRequest) -> NodeDetailResponse:
             "실무 적용 사례 분석 및 코드 리뷰",
         ]
         concepts = [body.node_label, "기초 개념", "실습", "문서", "적용"]
+        resources = {}
 
-    result = {"missions": missions, "concepts": concepts}
+    result = {"missions": missions, "concepts": concepts, "resources": resources}
     _detail_cache[key] = result
     return NodeDetailResponse(**result)
 
