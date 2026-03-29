@@ -31,16 +31,6 @@ const BRANCH_MIN_H = 100  // branch 노드 간 최소 간격(px)
 const SCALE_MIN = 0.5
 const SCALE_MAX = 2.5
 
-// ── 위치 계산 유틸 ────────────────────────────────────
-
-function distributeY(count, minY, maxY, minGap) {
-  if (count === 1) return [(minY + maxY) / 2]
-  const available = maxY - minY
-  const step = Math.max(available / (count - 1), minGap)
-  const totalH = step * (count - 1)
-  const startY = (minY + maxY) / 2 - totalH / 2
-  return Array.from({ length: count }, (_, i) => startY + i * step)
-}
 
 function computeLayout(root) {
   const nodes = []
@@ -51,31 +41,35 @@ function computeLayout(root) {
 
   nodes.push({ ...root, x: COL_X.root, y: rootY, treeLevel: 0 })
 
-  const branchYs = distributeY(
-    branches.length,
-    PADDING.top,
-    CANVAS.height - PADDING.bottom,
-    BRANCH_MIN_H,
-  )
+  // 전체 leaf 수 합산 후 캔버스 전역 기준으로 Y 배분
+  const totalLeaves = branches.reduce((sum, b) => sum + Math.max(b.children?.length ?? 0, 1), 0)
+  const availableH = CANVAS.height - PADDING.top - PADDING.bottom
+  const leafStep = Math.max(availableH / Math.max(totalLeaves - 1, 1), LEAF_SPACING)
+  const totalH = leafStep * (totalLeaves - 1)
+  const leafStartY = CANVAS.height / 2 - totalH / 2
 
-  branches.forEach((branch, bi) => {
+  let leafIndex = 0
+
+  branches.forEach((branch) => {
+    const leaves = branch.children ?? []
+    const leafCount = Math.max(leaves.length, 1)
+
+    // 이 branch에 속한 leaf들의 전역 Y 좌표
+    const branchLeafYs = Array.from({ length: leafCount }, (_, i) =>
+      leafStartY + (leafIndex + i) * leafStep,
+    )
+    leafIndex += leafCount
+
+    // branch Y = 소속 leaf들의 중앙
+    const by = (branchLeafYs[0] + branchLeafYs[branchLeafYs.length - 1]) / 2
     const bx = COL_X.branch
-    const by = branchYs[bi]
 
     nodes.push({ ...branch, x: bx, y: by, treeLevel: 1 })
     edges.push({ id: `e-root-${branch.id}`, x1: COL_X.root, y1: rootY, x2: bx, y2: by })
 
-    const leaves = branch.children ?? []
-    const leafYs = distributeY(
-      leaves.length,
-      by - (leaves.length - 1) * LEAF_SPACING * 0.6,
-      by + (leaves.length - 1) * LEAF_SPACING * 0.6,
-      LEAF_SPACING,
-    )
-
     leaves.forEach((leaf, li) => {
       const lx = COL_X.leaf
-      const ly = leafYs[li]
+      const ly = branchLeafYs[li]
       nodes.push({ ...leaf, x: lx, y: ly, treeLevel: 2 })
       edges.push({ id: `e-${branch.id}-${leaf.id}`, x1: bx, y1: by, x2: lx, y2: ly })
     })
