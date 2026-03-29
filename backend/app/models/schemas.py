@@ -135,3 +135,23 @@ class QuizResponse(BaseModel):
     """퀵 퀴즈 응답."""
 
     questions: list[QuizQuestion]
+
+
+class MissionGuideRequest(BaseModel):
+    """미션 단계별 가이드 요청 파라미터."""
+
+    mission: str = Field(..., description="가이드를 생성할 미션 텍스트")
+    node_label: str = Field(..., description="노드 레이블 (기술명)")
+    role: str = Field(..., description="학습자 직무")
+    level: Literal["Junior", "Mid", "Senior"] = Field(..., description="학습자 숙련도")
+
+
+class MissionStep(BaseModel):
+    title: str
+    description: str
+
+
+class MissionGuideResponse(BaseModel):
+    """미션 단계별 가이드 응답."""
+
+    steps: list[MissionStep]

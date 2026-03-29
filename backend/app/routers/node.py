@@ -11,6 +11,8 @@ import json
 from fastapi import APIRouter, HTTPException
 
 from app.models.schemas import (
+    MissionGuideRequest,
+    MissionGuideResponse,
     NodeDetailRequest,
     NodeDetailResponse,
     QuizRequest,
@@ -19,7 +21,7 @@ from app.models.schemas import (
 from app.services.llm_service import get_llm_provider
 from app.utils.logger import get_logger
 from app.utils.parser import extract_json
-from app.utils.prompts import build_node_detail_prompt, build_quiz_prompt
+from app.utils.prompts import build_mission_guide_prompt, build_node_detail_prompt, build_quiz_prompt
 
 router = APIRouter(prefix="/api/node", tags=["node"])
 logger = get_logger("node")
@@ -27,6 +29,7 @@ logger = get_logger("node")
 # 인메모리 캐시: {role}_{level}_{node_label} → 응답 dict
 _detail_cache: dict[str, dict] = {}
 _quiz_cache: dict[str, dict] = {}
+_mission_guide_cache: dict[str, dict] = {}
 
 
 def _cache_key(node_label: str, role: str, level: str) -> str:
@@ -151,3 +154,46 @@ async def get_node_quiz(body: QuizRequest) -> QuizResponse:
     result = {"questions": questions}
     _quiz_cache[key] = result
     return QuizResponse(**result)
+
+
+@router.post("/mission-guide", response_model=MissionGuideResponse)
+async def get_mission_guide(body: MissionGuideRequest) -> MissionGuideResponse:
+    """
+    미션 수행을 위한 단계별 가이드를 LLM으로 생성합니다.
+    동일 요청 재호출 시 캐시에서 즉시 반환합니다.
+    """
+    logger.info("[mission-guide] 요청: mission=%s node=%s", body.mission[:30], body.node_label)
+    key = f"{body.role}_{body.level}_{body.node_label}_{body.mission}"
+
+    if key in _mission_guide_cache:
+        logger.info("[mission-guide] 캐시 HIT")
+        return MissionGuideResponse(**_mission_guide_cache[key])
+
+    logger.info("[mission-guide] 캐시 MISS → LLM 호출")
+    system, user = build_mission_guide_prompt(body.mission, body.node_label, body.role, body.level)
+
+    try:
+        provider = get_llm_provider()
+        raw = await provider.generate(system, user)
+    except Exception as exc:
+        logger.error("[mission-guide] LLM 호출 실패: %s", exc, exc_info=True)
+        raise HTTPException(status_code=503, detail=str(exc))
+
+    try:
+        data = extract_json(raw)
+        steps = data.get("steps", [])
+        if not isinstance(steps, list) or len(steps) == 0:
+            raise ValueError("invalid shape")
+        logger.info("[mission-guide] 파싱 성공, 캐시 저장")
+    except Exception as exc:
+        logger.warning("[mission-guide] 파싱 실패 → 기본값 반환: %s", exc)
+        steps = [
+            {"title": "개념 파악", "description": f"{body.node_label} 공식 문서와 기본 개념을 먼저 살펴보세요."},
+            {"title": "예제 실습", "description": "간단한 예제 코드를 직접 작성하며 핵심 기능을 익히세요."},
+            {"title": "미션 수행", "description": f"{body.mission} 요건을 충족하는 코드를 작성하세요."},
+            {"title": "검토 및 개선", "description": "작성한 코드를 검토하고 더 나은 방법이 있는지 고민해 보세요."},
+        ]
+
+    result = {"steps": steps}
+    _mission_guide_cache[key] = result
+    return MissionGuideResponse(**result)

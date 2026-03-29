@@ -140,6 +140,34 @@ def build_chat_system_prompt(node_label: str, role: str, level: str) -> str:
     )
 
 
+def build_mission_guide_prompt(mission: str, node_label: str, role: str, level: str) -> tuple[str, str]:
+    """미션을 수행하기 위한 단계별 가이드 생성 프롬프트를 반환합니다.
+
+    Returns:
+        (system_prompt, user_prompt) 튜플
+    """
+    tone = _LEVEL_TONE.get(level, _LEVEL_TONE["Mid"])
+    system = (
+        "당신은 IT 교육 전문가입니다.\n"
+        "주어진 학습 미션을 수행하는 단계별 가이드를 JSON으로만 반환하세요.\n"
+        "마크다운, 설명, 코드블록 없이 순수 JSON만 출력하세요.\n\n"
+        f"레벨 안내 스타일: {tone}\n\n"
+        '출력 스키마: {"steps": [{"title": "단계 제목", "description": "단계 설명"}]}\n\n'
+        "규칙:\n"
+        f"- steps: {level} 수준에 맞는 3~5단계\n"
+        "- 각 단계는 title(짧은 동사구)과 description(2~3문장 구체적 행동 지침)으로 구성\n"
+        "- 한국어로 작성"
+    )
+    user = (
+        f"직무: {role}\n"
+        f"숙련도: {level}\n"
+        f"기술 항목: {node_label}\n"
+        f"미션: {mission}\n\n"
+        "이 미션을 수행하기 위한 단계별 가이드 JSON을 생성하세요."
+    )
+    return system, user
+
+
 def build_user_prompt(role: str, level: str, guideline: dict) -> str:
     """가이드라인 키워드를 포함한 사용자 프롬프트를 반환합니다.
 
