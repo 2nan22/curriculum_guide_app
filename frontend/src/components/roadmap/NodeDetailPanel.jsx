@@ -117,6 +117,11 @@ function inflearnSearchUrl(title) {
   return `https://www.inflearn.com/courses?s=${encodeURIComponent(title)}`
 }
 
+function lectureSearchUrl(lec) {
+  if (lec.platform === '인프런') return inflearnSearchUrl(lec.title)
+  return `https://www.udemy.com/courses/search/?q=${encodeURIComponent(lec.title)}`
+}
+
 // ── 서적 목록 ─────────────────────────────────────────
 function BookList({ llmBooks, staticBooks, loading }) {
   if (loading) {
@@ -138,7 +143,13 @@ function BookList({ llmBooks, staticBooks, loading }) {
   return (
     <div className="space-y-3">
       {books.map((book, i) => (
-        <div key={i} className="p-5 bg-white border border-slate-100 rounded-3xl">
+        <a
+          key={i}
+          href={yes24SearchUrl(book.title)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block p-5 bg-white border border-slate-100 rounded-3xl hover:border-blue-400 hover:shadow-md transition-all"
+        >
           <p className="font-black text-slate-900 text-sm">{book.title}</p>
           <p className="text-slate-400 text-xs mt-1">{book.author}</p>
           {book.description && (
@@ -153,17 +164,7 @@ function BookList({ llmBooks, staticBooks, loading }) {
               ))}
             </div>
           )}
-          {isLlm && (
-            <a
-              href={yes24SearchUrl(book.title)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[10px] font-bold text-blue-500 hover:underline mt-2 inline-flex items-center gap-1"
-            >
-              <ExternalLink size={10} /> YES24에서 검색
-            </a>
-          )}
-        </div>
+        </a>
       ))}
     </div>
   )
@@ -190,7 +191,13 @@ function LectureList({ llmLectures, staticLectures, loading }) {
   return (
     <div className="space-y-3">
       {lectures.map((lec, i) => (
-        <div key={i} className="p-5 bg-white border border-slate-100 rounded-3xl">
+        <a
+          key={i}
+          href={lectureSearchUrl(lec)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block p-5 bg-white border border-slate-100 rounded-3xl hover:border-blue-400 hover:shadow-md transition-all"
+        >
           <div className="flex items-start justify-between gap-2">
             <p className="font-black text-slate-900 text-sm">{lec.title}</p>
             {lec.free && (
@@ -206,17 +213,7 @@ function LectureList({ llmLectures, staticLectures, loading }) {
           {lec.description && (
             <p className="text-slate-500 text-xs mt-1 leading-relaxed">{lec.description}</p>
           )}
-          {isLlm && lec.platform === '인프런' && (
-            <a
-              href={inflearnSearchUrl(lec.title)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[10px] font-bold text-blue-500 hover:underline mt-2 inline-flex items-center gap-1"
-            >
-              <ExternalLink size={10} /> 인프런에서 검색
-            </a>
-          )}
-        </div>
+        </a>
       ))}
     </div>
   )
