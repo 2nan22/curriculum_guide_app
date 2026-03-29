@@ -23,7 +23,7 @@ const TABS = [
 ]
 
 // ── 미션 체크리스트 ────────────────────────────────────
-function MissionList({ missions, loading, nodeLabel, role, level, onAskTutor }) {
+function MissionList({ missions, nodeLabel, role, level, onAskTutor }) {
   const [checked, setChecked] = useState({})
   const [openMission, setOpenMission] = useState(null)
   const { guide, loading: guideLoading, load: loadGuide } = useMissionGuide(nodeLabel, role, level)
@@ -40,16 +40,6 @@ function MissionList({ missions, loading, nodeLabel, role, level, onAskTutor }) 
       setOpenMission(mission)
       loadGuide(mission)
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-16 bg-slate-100 rounded-3xl animate-pulse" />
-        ))}
-      </div>
-    )
   }
 
   return (
@@ -117,18 +107,8 @@ function MissionList({ missions, loading, nodeLabel, role, level, onAskTutor }) 
 }
 
 // ── 핵심 개념 태그 ────────────────────────────────────
-function ConceptTags({ concepts, loading }) {
+function ConceptTags({ concepts }) {
   const [openTerm, setOpenTerm] = useState(null)
-
-  if (loading) {
-    return (
-      <div className="flex flex-wrap gap-2">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-8 w-24 bg-slate-100 rounded-full animate-pulse" />
-        ))}
-      </div>
-    )
-  }
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -173,17 +153,7 @@ function lectureSearchUrl(lec) {
 }
 
 // ── 서적 목록 ─────────────────────────────────────────
-function BookList({ llmBooks, staticBooks, loading }) {
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-20 bg-slate-100 rounded-3xl animate-pulse" />
-        ))}
-      </div>
-    )
-  }
-
+function BookList({ llmBooks, staticBooks }) {
   const isLlm = llmBooks.length > 0
   const books = isLlm ? llmBooks : staticBooks
 
@@ -221,17 +191,7 @@ function BookList({ llmBooks, staticBooks, loading }) {
 }
 
 // ── 강의 목록 ─────────────────────────────────────────
-function LectureList({ llmLectures, staticLectures, loading }) {
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-20 bg-slate-100 rounded-3xl animate-pulse" />
-        ))}
-      </div>
-    )
-  }
-
+function LectureList({ llmLectures, staticLectures }) {
   const isLlm = llmLectures.length > 0
   const lectures = isLlm ? llmLectures : staticLectures
 
@@ -411,36 +371,45 @@ export default function NodeDetailPanel({ node, role, level, visible, completedN
 
       {/* 탭 콘텐츠 */}
       <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-        {activeTab === 'missions' && (
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-slate-100 rounded-3xl animate-pulse" />
+            ))}
+          </div>
+        ) : (
           <>
-            <MissionList
-              missions={missions}
-              loading={loading}
-              nodeLabel={node?.label}
-              role={role}
-              level={level}
-              onAskTutor={onAskTutor}
-            />
-            <QuickQuiz
-              node={node}
-              role={role}
-              level={level}
-              onToggleComplete={onToggleComplete}
-              isCompleted={completedNodes.has(node?.id)}
-            />
+            {activeTab === 'missions' && (
+              <>
+                <MissionList
+                  missions={missions}
+                  nodeLabel={node?.label}
+                  role={role}
+                  level={level}
+                  onAskTutor={onAskTutor}
+                />
+                <QuickQuiz
+                  node={node}
+                  role={role}
+                  level={level}
+                  onToggleComplete={onToggleComplete}
+                  isCompleted={completedNodes.has(node?.id)}
+                />
+              </>
+            )}
+            {activeTab === 'concepts' && (
+              <ConceptTags concepts={concepts} />
+            )}
+            {activeTab === 'books' && (
+              <BookList llmBooks={resources.books} staticBooks={recs.books} />
+            )}
+            {activeTab === 'lectures' && (
+              <LectureList llmLectures={resources.lectures} staticLectures={recs.lectures} />
+            )}
+            {activeTab === 'docs' && (
+              <DocList docs={resources.docs} />
+            )}
           </>
-        )}
-        {activeTab === 'concepts' && (
-          <ConceptTags concepts={concepts} loading={loading} />
-        )}
-        {activeTab === 'books' && (
-          <BookList llmBooks={resources.books} staticBooks={recs.books} loading={loading} />
-        )}
-        {activeTab === 'lectures' && (
-          <LectureList llmLectures={resources.lectures} staticLectures={recs.lectures} loading={loading} />
-        )}
-        {activeTab === 'docs' && (
-          <DocList docs={resources.docs} />
         )}
       </div>
     </motion.div>
