@@ -81,17 +81,22 @@ function ErrorView({ message, onRetry }) {
  * @param {string|null}  [props.error]
  * @param {() => void}   props.onReset
  * @param {() => void}   [props.onRetry]
+ * @param {string}       [props.role]   - URL 파라미터에서 전달된 role (Context보다 우선)
+ * @param {string}       [props.level]  - URL 파라미터에서 전달된 level (Context보다 우선)
  */
-export default function RoadmapPage({ data, loading = false, error = null, onReset, onRetry }) {
+export default function RoadmapPage({ data, loading = false, error = null, onReset, onRetry, role: roleProp, level: levelProp }) {
   const { state } = useSelection()
   const [viewMode, setViewMode] = useState('mindmap')
   const [activeNode, setActiveNode] = useState(null)
 
+  const role = roleProp ?? state.role
+  const level = levelProp ?? state.level
+
   const root = data?.root ?? data
 
   const { completedNodes, toggleComplete, getCompletionRate, getBranchRate } = useProgress(
-    state.role,
-    state.level,
+    role,
+    level,
   )
 
   const [tutorMessage, setTutorMessage] = useState(null)
@@ -143,9 +148,9 @@ export default function RoadmapPage({ data, loading = false, error = null, onRes
           </button>
           <div>
             <span className="font-black text-lg md:text-xl tracking-tight">AI Path</span>
-            {state.role && (
+            {role && (
               <span className="ml-2 md:ml-3 text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-widest hidden sm:inline">
-                {state.role} · {state.level}
+                {role} · {level}
               </span>
             )}
           </div>
@@ -198,8 +203,8 @@ export default function RoadmapPage({ data, loading = false, error = null, onRes
           {activeNode ? (
             <NodeDetailPanel
               node={activeNode}
-              role={state.role}
-              level={state.level}
+              role={role}
+              level={level}
               visible={!!activeNode}
               completedNodes={completedNodes}
               onToggleComplete={toggleComplete}
@@ -214,8 +219,8 @@ export default function RoadmapPage({ data, loading = false, error = null, onRes
       {/* AI 튜터 플로팅 채팅창 */}
       <AiTutorChat
         activeNode={activeNode}
-        role={state.role}
-        level={state.level}
+        role={role}
+        level={level}
         pendingMessage={tutorMessage}
       />
     </FullLayout>
