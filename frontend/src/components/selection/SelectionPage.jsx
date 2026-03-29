@@ -117,9 +117,18 @@ const LLM_PROVIDERS = {
 // ── 단계별 뷰 컴포넌트 ────────────────────────────────
 
 /** 역할 선택 뷰 */
-function RoleSelectionView({ selectedRole, onSelect }) {
+function RoleSelectionView({ selectedRole, onSelect, onBack }) {
   return (
     <CenteredLayout>
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="absolute top-8 left-8 flex items-center gap-2 text-slate-400 font-bold hover:text-slate-900 transition-colors"
+        >
+          <ChevronLeft size={20} />
+          홈으로
+        </button>
+      )}
       <div className="flex items-center gap-3 mb-4">
         <div className="bg-slate-900 p-2.5 rounded-2xl">
           <BookOpen size={22} className="text-white" />
@@ -308,7 +317,7 @@ function GeneratingView({ selectedLevel }) {
  * @param {(role: string, level: string) => Promise<object>} props.generate - 로드맵 생성 함수
  * @param {boolean} props.loading - 로딩 상태
  */
-export default function SelectionPage({ onRoadmapReady, generate, loading }) {
+export default function SelectionPage({ onRoadmapReady, generate, loading, onBack }) {
   const { state, dispatch } = useSelection()
   const [step, setStep] = useState('role-selection')
   const [provider, setProvider] = useState('OLLAMA')
@@ -349,6 +358,7 @@ export default function SelectionPage({ onRoadmapReady, generate, loading }) {
               dispatch({ type: 'SET_ROLE', payload: role.id })
               setStep('level-selection')
             }}
+            onBack={onBack}
           />
         </motion.div>
       )}

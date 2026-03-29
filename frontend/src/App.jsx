@@ -59,7 +59,7 @@ function SelectionRoute() {
     return <LoadingScreen role={loadingRole} level={loadingLevel} />
   }
 
-  return <SelectionPage onRoadmapReady={handleRoadmapReady} generate={generate} loading={loading} />
+  return <SelectionPage onRoadmapReady={handleRoadmapReady} generate={generate} loading={loading} onBack={() => navigate('/')} />
 }
 
 // ── RoadmapPage 래퍼 ──────────────────────────────────
