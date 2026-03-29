@@ -6,9 +6,14 @@
  */
 
 const KEY_PREFIX = 'aipath'
+const ROADMAP_KEY_PREFIX = 'aipath_roadmap'
 
 function makeKey(role, level) {
   return `${KEY_PREFIX}_${role}_${level}`
+}
+
+function makeRoadmapKey(role, level) {
+  return `${ROADMAP_KEY_PREFIX}_${role}_${level}`
 }
 
 /**
@@ -57,5 +62,66 @@ export function clear(role, level) {
     localStorage.removeItem(makeKey(role, level))
   } catch {
     // 무시
+  }
+}
+
+/**
+ * 로드맵 데이터를 localStorage에 저장합니다.
+ *
+ * @param {string} role
+ * @param {string} level
+ * @param {object} roadmapData
+ */
+export function saveRoadmap(role, level, roadmapData) {
+  try {
+    localStorage.setItem(makeRoadmapKey(role, level), JSON.stringify(roadmapData))
+  } catch {
+    // localStorage 접근 불가 시 무시
+  }
+}
+
+/**
+ * 저장된 로드맵 데이터를 불러옵니다.
+ *
+ * @param {string} role
+ * @param {string} level
+ * @returns {object|null}
+ */
+export function loadRoadmap(role, level) {
+  try {
+    const raw = localStorage.getItem(makeRoadmapKey(role, level))
+    if (!raw) return null
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * 저장된 로드맵 데이터를 삭제합니다.
+ *
+ * @param {string} role
+ * @param {string} level
+ */
+export function clearRoadmap(role, level) {
+  try {
+    localStorage.removeItem(makeRoadmapKey(role, level))
+  } catch {
+    // 무시
+  }
+}
+
+/**
+ * 저장된 로드맵 데이터 존재 여부를 반환합니다.
+ *
+ * @param {string} role
+ * @param {string} level
+ * @returns {boolean}
+ */
+export function hasRoadmap(role, level) {
+  try {
+    return localStorage.getItem(makeRoadmapKey(role, level)) !== null
+  } catch {
+    return false
   }
 }
