@@ -181,6 +181,7 @@ export default function RoadmapPage({ data, loading = false, error = null, onRes
                 data={root}
                 activeId={activeNode?.id ?? null}
                 onSelect={setActiveNode}
+                completedNodes={completedNodes}
               />
             )}
           </div>

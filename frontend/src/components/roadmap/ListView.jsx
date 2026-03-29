@@ -31,7 +31,7 @@ function StatusIcon({ status, isActive }) {
  * @param {string|null} props.activeId
  * @param {(node: object) => void} props.onSelect
  */
-function ListNode({ node, depth = 0, activeId, onSelect }) {
+function ListNode({ node, depth = 0, activeId, onSelect, completedNodes }) {
   const [isOpen, setIsOpen] = useState(true)
   const hasChildren = node.children?.length > 0
   const isActive = activeId === node.id
@@ -63,7 +63,7 @@ function ListNode({ node, depth = 0, activeId, onSelect }) {
           ) : null}
         </span>
 
-        <StatusIcon status={node.status} isActive={isActive} />
+        <StatusIcon status={completedNodes.has(node.id) ? 'completed' : node.status} isActive={isActive} />
 
         <span className="font-bold text-sm tracking-tight flex-1 truncate">
           {node.label}
@@ -90,6 +90,7 @@ function ListNode({ node, depth = 0, activeId, onSelect }) {
               depth={depth + 1}
               activeId={activeId}
               onSelect={onSelect}
+              completedNodes={completedNodes}
             />
           ))}
         </div>
@@ -106,10 +107,10 @@ function ListNode({ node, depth = 0, activeId, onSelect }) {
  * @param {string|null} props.activeId
  * @param {(node: object) => void} props.onSelect
  */
-export default function ListView({ data, activeId, onSelect }) {
+export default function ListView({ data, activeId, onSelect, completedNodes = new Set() }) {
   return (
     <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-inner h-full overflow-y-auto p-8 custom-scrollbar">
-      <ListNode node={data} activeId={activeId} onSelect={onSelect} />
+      <ListNode node={data} activeId={activeId} onSelect={onSelect} completedNodes={completedNodes} />
     </div>
   )
 }
