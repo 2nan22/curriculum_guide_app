@@ -125,3 +125,60 @@ export function hasRoadmap(role, level) {
     return false
   }
 }
+
+/**
+ * localStorage에 저장된 모든 로드맵의 role/level 조합을 반환합니다.
+ *
+ * @returns {{ role: string, level: string }[]}
+ */
+export function listSavedRoadmaps() {
+  const results = []
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (!key?.startsWith(ROADMAP_KEY_PREFIX + '_')) continue
+      // 키 형식: aipath_roadmap_{role}_{level}
+      const suffix = key.slice((ROADMAP_KEY_PREFIX + '_').length)
+      // level은 항상 마지막 토큰 (Junior|Mid|Senior)
+      const levelMatch = suffix.match(/_(Junior|Mid|Senior)$/)
+      if (!levelMatch) continue
+      const level = levelMatch[1]
+      const role = suffix.slice(0, suffix.length - level.length - 1)
+      results.push({ role, level })
+    }
+  } catch {
+    // localStorage 접근 불가 시 무시
+  }
+  return results
+}
+
+/**
+ * 저장된 로드맵의 완료 노드 수와 전체 노드 수를 반환합니다.
+ *
+ * @param {string} role
+ * @param {string} level
+ * @returns {{ completed: number, total: number }}
+ */
+export function getRoadmapProgress(role, level) {
+  try {
+    const roadmap = loadRoadmap(role, level)
+    if (!roadmap) return { completed: 0, total: 0 }
+
+    const root = roadmap?.root ?? roadmap
+    const completedIds = load(role, level)
+
+    let total = 0
+    let completed = 0
+    function walk(node, depth) {
+      if (depth > 0) {
+        total++
+        if (completedIds.has(node.id)) completed++
+      }
+      ;(node.children ?? []).forEach((c) => walk(c, depth + 1))
+    }
+    walk(root, 0)
+    return { completed, total }
+  } catch {
+    return { completed: 0, total: 0 }
+  }
+}
