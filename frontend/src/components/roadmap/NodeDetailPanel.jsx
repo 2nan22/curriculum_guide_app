@@ -421,7 +421,13 @@ export default function NodeDetailPanel({ node, role, level, visible, completedN
               level={level}
               onAskTutor={onAskTutor}
             />
-            <QuickQuiz node={node} role={role} level={level} />
+            <QuickQuiz
+              node={node}
+              role={role}
+              level={level}
+              onToggleComplete={onToggleComplete}
+              isCompleted={completedNodes.has(node?.id)}
+            />
           </>
         )}
         {activeTab === 'concepts' && (

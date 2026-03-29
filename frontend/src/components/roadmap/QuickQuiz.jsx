@@ -68,7 +68,7 @@ function QuizQuestion({ question, index, submitted, onSelect, selected }) {
  * @param {string} props.role
  * @param {string} props.level
  */
-export default function QuickQuiz({ node, role, level }) {
+export default function QuickQuiz({ node, role, level, onToggleComplete, isCompleted }) {
   const [questions, setQuestions] = useState(null)
   const [selections, setSelections] = useState({})
   const [submitted, setSubmitted] = useState(false)
@@ -183,13 +183,34 @@ export default function QuickQuiz({ node, role, level }) {
         )}
 
         {submitted && (
-          <div className="text-center py-2">
-            <p className="text-2xl font-black text-slate-900">
-              {score} / {questions.length}
-            </p>
-            <p className="text-sm text-slate-400 mt-1">
-              {score === questions.length ? '완벽해요! 🎉' : score >= questions.length / 2 ? '잘 하고 있어요!' : '조금 더 복습해 보세요.'}
-            </p>
+          <div className="text-center py-2 space-y-3">
+            <div>
+              <p className="text-2xl font-black text-slate-900">
+                {score} / {questions.length}
+              </p>
+              <p className="text-sm text-slate-400 mt-1">
+                {score === questions.length
+                  ? '완벽해요! 🎉'
+                  : score >= questions.length / 2
+                  ? '잘 하고 있어요!'
+                  : '조금 더 복습해 보세요.'}
+              </p>
+            </div>
+
+            {score === questions.length && onToggleComplete && !isCompleted && (
+              <button
+                onClick={() => onToggleComplete(node.id)}
+                className="w-full py-2.5 text-sm font-black text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 rounded-2xl transition-colors"
+              >
+                ✓ 학습 완료로 표시하기
+              </button>
+            )}
+
+            {score === questions.length && isCompleted && (
+              <p className="text-xs font-bold text-green-600 bg-green-50 py-2 rounded-2xl">
+                학습 완료 노드입니다
+              </p>
+            )}
           </div>
         )}
       </div>
