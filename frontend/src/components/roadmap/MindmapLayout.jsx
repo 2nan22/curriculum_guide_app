@@ -14,7 +14,7 @@
  * 줌/팬: 마우스 휠(0.5x~2.5x) + 드래그, "전체 보기" 버튼으로 리셋
  */
 
-import { useMemo, useState, useRef, useCallback } from 'react'
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Maximize2 } from 'lucide-react'
 import MindmapNode from './MindmapNode.jsx'
@@ -114,6 +114,22 @@ function Edge({ id, x1, y1, x2, y2 }) {
 export default function MindmapLayout({ data, activeNodeId, onNodeClick, completedNodes = new Set(), getBranchRate }) {
   const { nodes, edges } = useMemo(() => computeLayout(data), [data])
 
+  // ── 오버레이 상태 ───────────────────────────────────
+  const [allRendered, setAllRendered] = useState(false)
+  const renderedCount = useRef(0)
+
+  useEffect(() => {
+    setAllRendered(false)
+    renderedCount.current = 0
+  }, [data])
+
+  function handleNodeAnimationComplete() {
+    renderedCount.current += 1
+    if (renderedCount.current >= nodes.length) {
+      setAllRendered(true)
+    }
+  }
+
   // ── 줌/팬 상태 ─────────────────────────────────────
   const [transform, setTransform] = useState({ scale: 1, tx: 0, ty: 0 })
   const isDragging = useRef(false)
@@ -156,6 +172,14 @@ export default function MindmapLayout({ data, activeNodeId, onNodeClick, complet
 
   return (
     <div className="relative w-full h-full bg-slate-50 rounded-[2.5rem] border border-slate-200 shadow-inner overflow-hidden">
+      {!allRendered && (
+        <div className="absolute inset-0 bg-slate-50/90 backdrop-blur-sm flex items-center justify-center z-20 rounded-[2.5rem] pointer-events-none">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-2 border-slate-300 border-t-blue-500 rounded-full animate-spin" />
+            <p className="text-xs font-bold text-slate-400">마인드맵 구성 중...</p>
+          </div>
+        </div>
+      )}
       {/* 전체 보기 버튼 */}
       <button
         onClick={resetView}
@@ -193,6 +217,7 @@ export default function MindmapLayout({ data, activeNodeId, onNodeClick, complet
                 initial={{ opacity: 0, scale: 0.7 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: i * 0.05, duration: 0.25, ease: 'easeOut' }}
+                onAnimationComplete={handleNodeAnimationComplete}
               >
                 <MindmapNode
                   x={node.x}
