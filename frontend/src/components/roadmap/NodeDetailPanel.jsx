@@ -32,8 +32,7 @@ function MissionList({ missions, nodeLabel, role, level, onAskTutor }) {
     setChecked((prev) => ({ ...prev, [i]: !prev[i] }))
   }
 
-  function handleMissionClick(mission, i) {
-    toggle(i)
+  function handleMissionClick(mission) {
     if (openMission === mission) {
       setOpenMission(null)
     } else {
@@ -47,7 +46,7 @@ function MissionList({ missions, nodeLabel, role, level, onAskTutor }) {
       {missions.map((mission, i) => (
         <div key={i}>
           <button
-            onClick={() => handleMissionClick(mission, i)}
+            onClick={() => handleMissionClick(mission)}
             className={[
               'w-full flex items-start gap-4 p-5 rounded-3xl border text-left transition-all',
               checked[i]
@@ -96,6 +95,17 @@ function MissionList({ missions, nodeLabel, role, level, onAskTutor }) {
                       AI 튜터에게 자세히 물어보기
                     </button>
                   )}
+                  <button
+                    onClick={() => toggle(i)}
+                    className={[
+                      'mt-4 w-full py-2.5 text-xs font-black rounded-2xl border transition-colors',
+                      checked[i]
+                        ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
+                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100',
+                    ].join(' ')}
+                  >
+                    {checked[i] ? '✓ 완료됨 (취소하기)' : '완료로 표시'}
+                  </button>
                 </>
               ) : null}
             </div>
