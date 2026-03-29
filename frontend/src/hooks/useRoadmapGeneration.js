@@ -8,6 +8,7 @@
 
 import { useState } from 'react'
 import { generateRoadmap } from '../services/apiService.js'
+import { saveRoadmap } from '../services/storageService.js'
 
 /**
  * 로드맵 생성 요청 상태를 관리하는 훅.
@@ -42,6 +43,7 @@ export function useRoadmapGeneration() {
     try {
       const result = await generateRoadmap({ role, level })
       setData(result)
+      saveRoadmap(role, level, result)
       return result
     } catch (err) {
       setError(err.message ?? '알 수 없는 오류가 발생했습니다.')
