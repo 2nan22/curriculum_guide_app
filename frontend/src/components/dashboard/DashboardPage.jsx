@@ -4,8 +4,9 @@
  * 저장된 로드맵 목록과 진행률을 카드로 표시합니다.
  */
 
-import { BookOpen, Plus, Brain } from 'lucide-react'
-import { listSavedRoadmaps, getRoadmapProgress } from '../../services/storageService.js'
+import { useState } from 'react'
+import { BookOpen, Plus, Brain, X } from 'lucide-react'
+import { listSavedRoadmaps, getRoadmapProgress, deleteRoadmap } from '../../services/storageService.js'
 
 const ROLE_COLORS = {
   Frontend:           { bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-100' },
@@ -24,13 +25,28 @@ const LEVEL_LABELS = {
 
 // ── 로드맵 카드 ───────────────────────────────────────
 
-function RoadmapCard({ role, level, onContinue }) {
+function RoadmapCard({ role, level, onContinue, onDelete }) {
   const { completed, total } = getRoadmapProgress(role, level)
   const rate = total > 0 ? Math.round((completed / total) * 100) : 0
   const color = ROLE_COLORS[role] ?? ROLE_COLORS['Frontend']
 
+  function handleDelete(e) {
+    e.stopPropagation()
+    if (window.confirm(`${role} ${LEVEL_LABELS[level]} 로드맵을 삭제할까요?\n진행률도 함께 삭제됩니다.`)) {
+      onDelete()
+    }
+  }
+
   return (
-    <div className="bg-white border border-slate-100 rounded-[2rem] p-7 shadow-sm hover:shadow-md hover:border-slate-200 transition-all flex flex-col gap-5">
+    <div className="relative bg-white border border-slate-100 rounded-[2rem] p-7 shadow-sm hover:shadow-md hover:border-slate-200 transition-all flex flex-col gap-5">
+      {/* 삭제 버튼 */}
+      <button
+        onClick={handleDelete}
+        className="absolute top-5 right-5 w-7 h-7 flex items-center justify-center rounded-full bg-slate-100 hover:bg-red-100 hover:text-red-500 text-slate-400 transition-colors"
+        title="삭제"
+      >
+        <X size={14} />
+      </button>
       {/* 배지 */}
       <div className="flex items-center gap-2">
         <span className={`px-3 py-1 rounded-full text-xs font-black ${color.bg} ${color.text} border ${color.border}`}>
@@ -98,7 +114,12 @@ function EmptyState({ onNew }) {
  * @param {(role: string, level: string) => void} props.onContinue - 이어서 학습 클릭
  */
 export default function DashboardPage({ onNew, onContinue }) {
-  const savedRoadmaps = listSavedRoadmaps()
+  const [savedRoadmaps, setSavedRoadmaps] = useState(() => listSavedRoadmaps())
+
+  function handleDelete(role, level) {
+    deleteRoadmap(role, level)
+    setSavedRoadmaps((prev) => prev.filter((r) => !(r.role === role && r.level === level)))
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -134,6 +155,7 @@ export default function DashboardPage({ onNew, onContinue }) {
                   role={role}
                   level={level}
                   onContinue={() => onContinue(role, level)}
+                  onDelete={() => handleDelete(role, level)}
                 />
               ))}
             </div>

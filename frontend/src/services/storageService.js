@@ -153,6 +153,17 @@ export function listSavedRoadmaps() {
 }
 
 /**
+ * 저장된 로드맵 데이터와 진척도를 모두 삭제합니다.
+ *
+ * @param {string} role
+ * @param {string} level
+ */
+export function deleteRoadmap(role, level) {
+  clearRoadmap(role, level)
+  clear(role, level)
+}
+
+/**
  * 저장된 로드맵의 완료 노드 수와 전체 노드 수를 반환합니다.
  *
  * @param {string} role
