@@ -43,5 +43,6 @@ export function useNodeDetail(role, level) {
     [role, level],
   )
 
-  return { detail, loading, error, load }
+  const resources = detail?.resources ?? { books: [], lectures: [], docs: [] }
+  return { detail, resources, loading, error, load }
 }

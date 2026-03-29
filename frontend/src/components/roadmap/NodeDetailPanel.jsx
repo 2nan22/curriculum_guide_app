@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Target, Tag, BookOpen, Play, CheckCircle, Circle } from 'lucide-react'
+import { Target, Tag, BookOpen, Play, CheckCircle, Circle, ExternalLink } from 'lucide-react'
 import { useNodeDetail } from '../../hooks/useNodeDetail.js'
 import { getRecommendations } from '../../utils/recommendationEngine.js'
 import QuickQuiz from './QuickQuiz.jsx'
@@ -18,6 +18,7 @@ const TABS = [
   { id: 'concepts', label: '개념', icon: Tag },
   { id: 'books', label: '서적', icon: BookOpen },
   { id: 'lectures', label: '강의', icon: Play },
+  { id: 'docs', label: '공식문서', icon: ExternalLink },
 ]
 
 // ── 미션 체크리스트 ────────────────────────────────────
@@ -91,8 +92,29 @@ function ConceptTags({ concepts, loading }) {
   )
 }
 
+function yes24SearchUrl(title) {
+  return `https://www.yes24.com/Product/Search?query=${encodeURIComponent(title)}`
+}
+
+function inflearnSearchUrl(title) {
+  return `https://www.inflearn.com/courses?s=${encodeURIComponent(title)}`
+}
+
 // ── 서적 목록 ─────────────────────────────────────────
-function BookList({ books }) {
+function BookList({ llmBooks, staticBooks, loading }) {
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-20 bg-slate-100 rounded-3xl animate-pulse" />
+        ))}
+      </div>
+    )
+  }
+
+  const isLlm = llmBooks.length > 0
+  const books = isLlm ? llmBooks : staticBooks
+
   if (books.length === 0) {
     return <p className="text-slate-400 text-sm text-center py-10">매칭된 서적 추천이 없습니다.</p>
   }
@@ -102,6 +124,9 @@ function BookList({ books }) {
         <div key={i} className="p-5 bg-white border border-slate-100 rounded-3xl">
           <p className="font-black text-slate-900 text-sm">{book.title}</p>
           <p className="text-slate-400 text-xs mt-1">{book.author}</p>
+          {book.description && (
+            <p className="text-slate-500 text-xs mt-1 leading-relaxed">{book.description}</p>
+          )}
           {book.level && (
             <div className="flex gap-1 mt-2">
               {book.level.map((lv) => (
@@ -111,6 +136,16 @@ function BookList({ books }) {
               ))}
             </div>
           )}
+          {isLlm && (
+            <a
+              href={yes24SearchUrl(book.title)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-bold text-blue-500 hover:underline mt-2 inline-flex items-center gap-1"
+            >
+              <ExternalLink size={10} /> YES24에서 검색
+            </a>
+          )}
         </div>
       ))}
     </div>
@@ -118,7 +153,20 @@ function BookList({ books }) {
 }
 
 // ── 강의 목록 ─────────────────────────────────────────
-function LectureList({ lectures }) {
+function LectureList({ llmLectures, staticLectures, loading }) {
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-20 bg-slate-100 rounded-3xl animate-pulse" />
+        ))}
+      </div>
+    )
+  }
+
+  const isLlm = llmLectures.length > 0
+  const lectures = isLlm ? llmLectures : staticLectures
+
   if (lectures.length === 0) {
     return <p className="text-slate-400 text-sm text-center py-10">매칭된 강의 추천이 없습니다.</p>
   }
@@ -138,7 +186,46 @@ function LectureList({ lectures }) {
             {lec.platform}
             {lec.instructor && ` · ${lec.instructor}`}
           </p>
+          {lec.description && (
+            <p className="text-slate-500 text-xs mt-1 leading-relaxed">{lec.description}</p>
+          )}
+          {isLlm && lec.platform === '인프런' && (
+            <a
+              href={inflearnSearchUrl(lec.title)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-bold text-blue-500 hover:underline mt-2 inline-flex items-center gap-1"
+            >
+              <ExternalLink size={10} /> 인프런에서 검색
+            </a>
+          )}
         </div>
+      ))}
+    </div>
+  )
+}
+
+// ── 공식 문서 목록 ────────────────────────────────────
+function DocList({ docs }) {
+  if (docs.length === 0) {
+    return <p className="text-slate-400 text-sm text-center py-10">공식 문서 정보가 없습니다.</p>
+  }
+  return (
+    <div className="space-y-3">
+      {docs.map((doc, i) => (
+        <a
+          key={i}
+          href={doc.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block p-5 bg-white border border-slate-100 rounded-3xl hover:border-blue-400 hover:shadow-md transition-all"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <p className="font-black text-slate-900 text-sm">{doc.title}</p>
+            <ExternalLink size={14} className="shrink-0 text-slate-300" />
+          </div>
+          <p className="text-slate-400 text-xs mt-1 leading-relaxed">{doc.description}</p>
+        </a>
       ))}
     </div>
   )
@@ -159,7 +246,7 @@ export default function NodeDetailPanel({ node, role, level, visible, completedN
   const [activeTab, setActiveTab] = useState('missions')
   const [recs, setRecs] = useState({ books: [], lectures: [], matchedKeyword: null })
 
-  const { detail, loading, error, load } = useNodeDetail(role, level)
+  const { detail, resources, loading, error, load } = useNodeDetail(role, level)
 
   // 노드가 바뀌면 상세 정보 + 추천 로드
   useEffect(() => {
@@ -270,10 +357,13 @@ export default function NodeDetailPanel({ node, role, level, visible, completedN
           <ConceptTags concepts={concepts} loading={loading} />
         )}
         {activeTab === 'books' && (
-          <BookList books={recs.books} />
+          <BookList llmBooks={resources.books} staticBooks={recs.books} loading={loading} />
         )}
         {activeTab === 'lectures' && (
-          <LectureList lectures={recs.lectures} />
+          <LectureList llmLectures={resources.lectures} staticLectures={recs.lectures} loading={loading} />
+        )}
+        {activeTab === 'docs' && (
+          <DocList docs={resources.docs} />
         )}
       </div>
     </motion.div>
