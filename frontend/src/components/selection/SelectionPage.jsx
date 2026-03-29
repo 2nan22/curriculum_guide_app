@@ -285,24 +285,6 @@ function ConfigView({ selectedRole, selectedLevel, provider, onProviderChange, o
   )
 }
 
-/** 생성 중 로딩 뷰 */
-function GeneratingView({ selectedLevel }) {
-  return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center">
-      <div className="relative mb-10">
-        <div className="w-40 h-40 border-[6px] border-slate-50 border-t-blue-600 rounded-full animate-spin" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Brain size={48} className="text-blue-600 animate-pulse" />
-        </div>
-      </div>
-      <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-        {selectedLevel.title} 레벨 분석 중...
-      </h2>
-      <p className="text-slate-500 mt-3">LLM이 최적의 로드맵을 설계하고 있습니다</p>
-    </div>
-  )
-}
-
 // ── 메인 컴포넌트 ─────────────────────────────────────
 
 /**
