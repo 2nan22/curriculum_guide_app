@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { SelectionProvider, useSelection } from './context/SelectionContext.jsx'
 import SelectionPage from './components/selection/SelectionPage.jsx'
 import RoadmapPage from './components/roadmap/RoadmapPage.jsx'
@@ -66,14 +66,14 @@ function SelectionRoute() {
 
 function RoadmapRoute() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const { dispatch } = useSelection()
 
   // location.state 에서 roadmapData 꺼내기, 없으면 URL 파라미터로 localStorage 복원
-  const locationState = window.history.state?.usr ?? {}
   const role = searchParams.get('role')
   const level = searchParams.get('level')
-  const [data] = useState(locationState.roadmapData ?? loadRoadmap(role, level) ?? null)
+  const [data] = useState(location.state?.roadmapData ?? loadRoadmap(role, level) ?? null)
 
   useEffect(() => {
     if (role && level) {
