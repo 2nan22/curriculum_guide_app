@@ -148,7 +148,7 @@ function ConceptTags({ concepts, loading }) {
               {concept.term}
             </button>
             {isOpen && (
-              <div className="mt-2 px-4 py-3 bg-blue-50 border border-blue-100 rounded-2xl text-xs text-blue-700 leading-relaxed max-w-xs">
+              <div className="mt-2 px-4 py-3 bg-blue-50 border border-blue-100 rounded-2xl text-xs text-blue-700 leading-relaxed max-w-full max-h-36 overflow-y-auto">
                 {concept.description}
               </div>
             )}
