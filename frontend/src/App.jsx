@@ -13,6 +13,7 @@ import SelectionPage from './components/selection/SelectionPage.jsx'
 import RoadmapPage from './components/roadmap/RoadmapPage.jsx'
 import LoadingScreen from './components/common/LoadingScreen.jsx'
 import { useRoadmapGeneration } from './hooks/useRoadmapGeneration.js'
+import { loadRoadmap } from './services/storageService.js'
 
 // ── SelectionPage 래퍼 ────────────────────────────────
 
@@ -39,12 +40,14 @@ function SelectionRoute() {
 
 function RoadmapRoute() {
   const navigate = useNavigate()
-  const [, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const { dispatch } = useSelection()
 
-  // location.state 에서 roadmapData 꺼내기
+  // location.state 에서 roadmapData 꺼내기, 없으면 URL 파라미터로 localStorage 복원
   const locationState = window.history.state?.usr ?? {}
-  const [data] = useState(locationState.roadmapData ?? null)
+  const role = searchParams.get('role')
+  const level = searchParams.get('level')
+  const [data] = useState(locationState.roadmapData ?? loadRoadmap(role, level) ?? null)
 
   function handleReset() {
     dispatch({ type: 'RESET' })
