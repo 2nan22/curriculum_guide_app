@@ -9,7 +9,6 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useRoadmapGeneration } from '../../hooks/useRoadmapGeneration.js'
 import {
   Layout,
   Terminal,
@@ -287,19 +286,23 @@ function GeneratingView({ selectedLevel }) {
  * @param {object} props
  * @param {(roadmapData: object) => void} props.onRoadmapReady - 생성 완료 시 콜백
  */
-export default function SelectionPage({ onRoadmapReady }) {
+/**
+ * @param {object} props
+ * @param {(roadmapData: object) => void} props.onRoadmapReady - 생성 완료 시 콜백
+ * @param {(role: string, level: string) => Promise<object>} props.generate - 로드맵 생성 함수
+ * @param {boolean} props.loading - 로딩 상태
+ */
+export default function SelectionPage({ onRoadmapReady, generate, loading }) {
   const { state, dispatch } = useSelection()
   const [step, setStep] = useState('role-selection')
   const [provider, setProvider] = useState('OLLAMA')
   const [apiError, setApiError] = useState(null)
-  const { generate, loading } = useRoadmapGeneration()
 
   const selectedRole = ROLES.find((r) => r.id === state.role) ?? null
   const selectedLevel = LEVELS.find((l) => l.id === state.level) ?? null
 
   async function handleStart() {
     setApiError(null)
-    setStep('generating')
     try {
       const data = await generate(state.role, state.level)
       onRoadmapReady(data)
@@ -358,11 +361,6 @@ export default function SelectionPage({ onRoadmapReady }) {
         </motion.div>
       )}
 
-      {step === 'generating' && (
-        <motion.div key="generating" variants={pageVariants} initial="initial" animate="animate" exit="exit">
-          <GeneratingView selectedLevel={selectedLevel} />
-        </motion.div>
-      )}
     </AnimatePresence>
   )
 }

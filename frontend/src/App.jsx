@@ -11,12 +11,15 @@ import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'reac
 import { SelectionProvider, useSelection } from './context/SelectionContext.jsx'
 import SelectionPage from './components/selection/SelectionPage.jsx'
 import RoadmapPage from './components/roadmap/RoadmapPage.jsx'
+import LoadingScreen from './components/common/LoadingScreen.jsx'
+import { useRoadmapGeneration } from './hooks/useRoadmapGeneration.js'
 
 // ── SelectionPage 래퍼 ────────────────────────────────
 
 function SelectionRoute() {
   const navigate = useNavigate()
   const { state } = useSelection()
+  const { generate, loading, loadingRole, loadingLevel } = useRoadmapGeneration()
 
   function handleRoadmapReady(data) {
     // 생성된 데이터를 location state로 전달
@@ -25,7 +28,11 @@ function SelectionRoute() {
     })
   }
 
-  return <SelectionPage onRoadmapReady={handleRoadmapReady} />
+  if (loading) {
+    return <LoadingScreen role={loadingRole} level={loadingLevel} />
+  }
+
+  return <SelectionPage onRoadmapReady={handleRoadmapReady} generate={generate} loading={loading} />
 }
 
 // ── RoadmapPage 래퍼 ──────────────────────────────────
