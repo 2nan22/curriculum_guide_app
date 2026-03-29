@@ -31,6 +31,7 @@ import Button from '../common/Button.jsx'
 import RoleCard from './RoleCard.jsx'
 import LevelCard from './LevelCard.jsx'
 import { useSelection } from '../../context/SelectionContext.jsx'
+import { hasRoadmap, loadRoadmap } from '../../services/storageService.js'
 
 // ── 데이터 상수 ───────────────────────────────────────
 
@@ -182,7 +183,9 @@ function LevelSelectionView({ selectedRole, selectedLevel, onSelect, onBack }) {
 }
 
 /** LLM 프로바이더 설정 + 생성 시작 뷰 */
-function ConfigView({ selectedRole, selectedLevel, provider, onProviderChange, onStart, onBack, loading, error }) {
+function ConfigView({ selectedRole, selectedLevel, provider, onProviderChange, onStart, onBack, loading, error, onRestoreRoadmap }) {
+  const hasCached = hasRoadmap(selectedRole.id, selectedLevel.id)
+
   return (
     <CenteredLayout>
       <div className="bg-white p-12 rounded-[3rem] shadow-2xl w-full max-w-xl border border-slate-100">
@@ -244,6 +247,19 @@ function ConfigView({ selectedRole, selectedLevel, provider, onProviderChange, o
           </div>
         )}
 
+        {/* 이전 로드맵 복원 버튼 */}
+        {hasCached && (
+          <Button
+            variant="secondary"
+            fullWidth
+            size="lg"
+            onClick={onRestoreRoadmap}
+            className="mb-3"
+          >
+            이전 로드맵 불러오기
+          </Button>
+        )}
+
         {/* 생성 시작 버튼 */}
         <Button
           fullWidth
@@ -301,6 +317,11 @@ export default function SelectionPage({ onRoadmapReady, generate, loading }) {
   const selectedRole = ROLES.find((r) => r.id === state.role) ?? null
   const selectedLevel = LEVELS.find((l) => l.id === state.level) ?? null
 
+  function handleRestore() {
+    const cached = loadRoadmap(state.role, state.level)
+    if (cached) onRoadmapReady(cached)
+  }
+
   async function handleStart() {
     setApiError(null)
     try {
@@ -357,6 +378,7 @@ export default function SelectionPage({ onRoadmapReady, generate, loading }) {
             onBack={() => setStep('level-selection')}
             loading={loading}
             error={apiError}
+            onRestoreRoadmap={handleRestore}
           />
         </motion.div>
       )}
