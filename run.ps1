@@ -28,6 +28,7 @@ param(
 )
 
 # UTF-8 출력 설정 (한글 깨짐 방지)
+chcp 65001 | Out-Null
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
