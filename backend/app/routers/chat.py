@@ -37,7 +37,17 @@ async def chat_stream(body: ChatRequest) -> StreamingResponse:
     async def event_generator():
         try:
             provider = get_llm_provider()
-            async for token in provider.generate_stream(system, messages[-1]["content"] if messages else ""):
+            if len(messages) > 1:
+                history_lines = [
+                    f"{'사용자' if m['role'] == 'user' else '튜터'}: {m['content']}"
+                    for m in messages[:-1]
+                ]
+                history = "\n".join(history_lines)
+                current = messages[-1]["content"]
+                user_prompt = f"[이전 대화]\n{history}\n\n[현재 질문]\n{current}"
+            else:
+                user_prompt = messages[-1]["content"] if messages else ""
+            async for token in provider.generate_stream(system, user_prompt):
                 yield f"data: {json.dumps({'token': token})}\n\n"
             yield "data: [DONE]\n\n"
             logger.info("[chat/stream] 스트리밍 완료")
