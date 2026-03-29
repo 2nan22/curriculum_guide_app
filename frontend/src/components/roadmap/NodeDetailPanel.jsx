@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Target, Tag, BookOpen, Play, CheckCircle, Circle, ExternalLink } from 'lucide-react'
 import { useNodeDetail } from '../../hooks/useNodeDetail.js'
+import { useMissionGuide } from '../../hooks/useMissionGuide.js'
 import { getRecommendations } from '../../utils/recommendationEngine.js'
 import QuickQuiz from './QuickQuiz.jsx'
 
@@ -22,11 +23,23 @@ const TABS = [
 ]
 
 // ── 미션 체크리스트 ────────────────────────────────────
-function MissionList({ missions, loading }) {
+function MissionList({ missions, loading, nodeLabel, role, level }) {
   const [checked, setChecked] = useState({})
+  const [openMission, setOpenMission] = useState(null)
+  const { guide, loading: guideLoading, load: loadGuide } = useMissionGuide(nodeLabel, role, level)
 
   function toggle(i) {
     setChecked((prev) => ({ ...prev, [i]: !prev[i] }))
+  }
+
+  function handleMissionClick(mission, i) {
+    toggle(i)
+    if (openMission === mission) {
+      setOpenMission(null)
+    } else {
+      setOpenMission(mission)
+      loadGuide(mission)
+    }
   }
 
   if (loading) {
@@ -42,25 +55,52 @@ function MissionList({ missions, loading }) {
   return (
     <div className="space-y-3">
       {missions.map((mission, i) => (
-        <button
-          key={i}
-          onClick={() => toggle(i)}
-          className={[
-            'w-full flex items-start gap-4 p-5 rounded-3xl border text-left transition-all',
-            checked[i]
-              ? 'bg-green-50 border-green-200 text-green-800'
-              : 'bg-white border-slate-100 hover:border-blue-400 hover:shadow-md hover:shadow-blue-500/5',
-          ].join(' ')}
-        >
-          {checked[i] ? (
-            <CheckCircle size={20} className="shrink-0 mt-0.5 text-green-500" />
-          ) : (
-            <Circle size={20} className="shrink-0 mt-0.5 text-slate-300" />
+        <div key={i}>
+          <button
+            onClick={() => handleMissionClick(mission, i)}
+            className={[
+              'w-full flex items-start gap-4 p-5 rounded-3xl border text-left transition-all',
+              checked[i]
+                ? 'bg-green-50 border-green-200 text-green-800'
+                : 'bg-white border-slate-100 hover:border-blue-400 hover:shadow-md hover:shadow-blue-500/5',
+            ].join(' ')}
+          >
+            {checked[i] ? (
+              <CheckCircle size={20} className="shrink-0 mt-0.5 text-green-500" />
+            ) : (
+              <Circle size={20} className="shrink-0 mt-0.5 text-slate-300" />
+            )}
+            <span className={`text-sm font-semibold leading-relaxed ${checked[i] ? 'line-through opacity-60' : ''}`}>
+              {mission}
+            </span>
+          </button>
+
+          {openMission === mission && (
+            <div className="mt-2 ml-2 p-5 bg-slate-50 border border-slate-200 rounded-3xl">
+              {guideLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((j) => (
+                    <div key={j} className="h-12 bg-slate-100 rounded-2xl animate-pulse" />
+                  ))}
+                </div>
+              ) : guide ? (
+                <ol className="space-y-4">
+                  {guide.steps.map((step, j) => (
+                    <li key={j} className="flex gap-4">
+                      <span className="shrink-0 w-6 h-6 bg-blue-600 text-white text-xs font-black rounded-full flex items-center justify-center mt-0.5">
+                        {j + 1}
+                      </span>
+                      <div>
+                        <p className="text-sm font-black text-slate-900 mb-1">{step.title}</p>
+                        <p className="text-xs text-slate-500 leading-relaxed">{step.description}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              ) : null}
+            </div>
           )}
-          <span className={`text-sm font-semibold leading-relaxed ${checked[i] ? 'line-through opacity-60' : ''}`}>
-            {mission}
-          </span>
-        </button>
+        </div>
       ))}
     </div>
   )
@@ -363,7 +403,13 @@ export default function NodeDetailPanel({ node, role, level, visible, completedN
       <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
         {activeTab === 'missions' && (
           <>
-            <MissionList missions={missions} loading={loading} />
+            <MissionList
+              missions={missions}
+              loading={loading}
+              nodeLabel={node?.label}
+              role={role}
+              level={level}
+            />
             <QuickQuiz node={node} role={role} level={level} />
           </>
         )}
